@@ -366,6 +366,74 @@ abstract getDeviceIdentity(): Promise<{ deviceId?: string; userId?: AccountUserI
 
 Source: [`packages/credentials/deepseek-account/src/index.ts`](../../packages/credentials/deepseek-account/src/index.ts)
 
+<a id="ctxenterpriseaccount--enterpriseaccount-abstract-seam"></a>
+
+### `ctx.enterpriseAccount` — `EnterpriseAccount` (abstract seam)
+
+Enterprise identity operations; token-bearing methods remain Host-only.
+
+```ts cordis-catalog
+/**
+ * Read stored identity presence and the latest login attempt.
+ * @returns a complete snapshot without credentials or PKCE secrets.
+ */
+abstract getState(): Promise<EnterpriseAccountView>
+
+/**
+ * Join an active attempt or begin browser authorization through the configured exact redirect URI.
+ * @returns the initial snapshot without waiting for browser approval.
+ */
+abstract startSignIn(): Promise<EnterpriseAccountView>
+
+/**
+ * Cancel only the named attempt; an admitted credential commit completes first.
+ * @param id - attempt identity returned by {@link startSignIn}.
+ * @returns state after cancellation or commit settlement.
+ */
+abstract cancelSignIn(id: EnterpriseSignInAttemptId): Promise<EnterpriseAccountView>
+
+/**
+ * Remove the local grant before attempting bounded remote revocation.
+ * @returns the signed-out state after local removal.
+ */
+abstract signOut(): Promise<EnterpriseAccountView>
+
+/**
+ * Subscribe to complete snapshots, including an initial value.
+ * @param signal - subscription lifetime; ending it does not cancel login.
+ * @returns account snapshots until the signal aborts or provider stops.
+ */
+abstract watch(signal: AbortSignal): AsyncIterable<EnterpriseAccountView>
+
+/**
+ * Resolve a current access token for the configured enterprise gateway.
+ * Refresh-token rotation is serialized by the credential provider.
+ * @param url - actual request destination.
+ * @param requiredScopes - scopes the caller needs for this request.
+ * @returns an access token, or undefined for another origin, missing scopes, or signed-out state.
+ */
+abstract resolveAccessToken(url: string, requiredScopes: readonly string[]): Promise<string | undefined>
+
+/**
+ * Replace a gateway-rejected token through the serialized refresh-token rotation.
+ * A concurrent refresh returns its newer token instead of spending the rejected refresh token again.
+ * @param url - actual request destination.
+ * @param rejectedToken - access token rejected with HTTP 401.
+ * @param requiredScopes - scopes the retry needs.
+ * @returns the replacement token, or undefined when the session cannot recover.
+ */
+abstract refreshAccessToken( url: string, rejectedToken: string, requiredScopes: readonly string[], ): Promise<string | undefined>
+
+/**
+ * Retire a gateway-rejected access token only if it is still current.
+ * @param token - token rejected by the gateway request.
+ * @returns after a matching grant is made unavailable.
+ */
+abstract rejectAccessToken(token: string): Promise<void>
+```
+
+Source: [`packages/credentials/enterprise-account/src/index.ts`](../../packages/credentials/enterprise-account/src/index.ts)
+
 <a id="authorization-events"></a>
 
 ### `authorization/*` events
@@ -485,8 +553,29 @@ Local grant removal has completed.
 ```
 
 Source: [`packages/credentials/deepseek-account/src/index.ts`](../../packages/credentials/deepseek-account/src/index.ts)
+
+<a id="enterprise-account-events"></a>
+
+### `enterprise-account/*` events
+
+<a id="enterprise-accountsession-expired--emit"></a>
+
+#### `enterprise-account/session-expired` — emit
+
+A rejected or unrefreshable enterprise credential was removed from use.
+
+```ts cordis-catalog
+/** A rejected or unrefreshable enterprise credential was removed from use.
+ * @mode emit
+ */
+'enterprise-account/session-expired'(): void
+```
+
+Source: [`packages/credentials/enterprise-account/src/index.ts`](../../packages/credentials/enterprise-account/src/index.ts)
 <!-- END GENERATED cordis-surface -->
 
 The account Service Definition exposes getState, getProfile, getBalance, getUnnotifiedBonuses, ackBonusNotified, startSignIn, cancelSignIn, signOut, watch, and Host-only resolveToken and getPlatformSession. The platform provider implements it with an AuthorizationFlow and a private GrantRecord. AccountView distinguishes stored presence from server validation; attempt IDs bind cancellation to one local flow. See [the account package](../../packages/credentials/deepseek-account/README.md).
+
+The enterprise account Service Definition keeps its `EnterpriseAccountView` browser-safe: it contains signed-in presence, sanitized identity claims, and one optional attempt view, but no client secret, authorization code, PKCE verifier, access token, or refresh token. `EnterpriseSignInAttemptId` binds cancellation to the currently displayed attempt. Host model adapters resolve a token for an exact gateway origin and required scopes, request serialized refresh after HTTP 401, and retire only the matching rejected token. See [the enterprise account package](../../packages/credentials/enterprise-account/README.md).
 
 `AccountClientMetadata` carries `version` from the caller’s `DSH_CLIENT_VERSION`, its active UI `locale`, and `timezoneOffsetSeconds` sampled when the operation begins. The offset is local time minus UTC in seconds: UTC+8 is `28800`. It contains no credentials. Login attempts retain their initiating metadata through exchange and cancellation; sign-out retains its metadata for revocation retries.

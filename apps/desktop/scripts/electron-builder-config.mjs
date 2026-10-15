@@ -33,6 +33,7 @@ import {
   verifyMacOSAppUpdateConfig,
   writeMacOSAppUpdateConfig,
 } from './macos-app-update-config.mjs'
+import { loadDesktopEnterpriseDistribution } from '../src/enterprise-distribution.mjs'
 
 /**
  * Create electron-builder configuration from one release environment.
@@ -51,6 +52,7 @@ export function createElectronBuilderConfig(
   preparedRuntimeVersion = undefined,
 ) {
   const appId = resolveDesktopAppId(env)
+  const enterprise = loadDesktopEnterpriseDistribution(env, fileURLToPath(new URL('..', import.meta.url)))
   const policy = resolveDesktopPolicyEnvironment(env)
   const targetPlatform = env.DSH_DESKTOP_TARGET_PLATFORM
   const resolvedPlatform = targetPlatform ?? hostPlatform
@@ -103,6 +105,7 @@ export function createElectronBuilderConfig(
     extraMetadata: {
       dshDesktopAppId: appId,
       dshMandatoryUpdatePolicy: policy,
+      ...enterprise === undefined ? {} : { dshEnterpriseDistribution: enterprise },
       ...buildVersion === productVersion ? {} : { version: buildVersion },
       ...packaged === undefined ? {} : { dshBuildCommit: packaged.commit, dshBuildDirty: packaged.dirty },
     },

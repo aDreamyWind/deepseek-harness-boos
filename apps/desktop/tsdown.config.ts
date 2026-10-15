@@ -1,7 +1,7 @@
 import { defineConfig } from 'tsdown'
 import { build } from 'vite'
 import { fileURLToPath } from 'node:url'
-import { readFileSync } from 'node:fs'
+import { copyFileSync, readFileSync } from 'node:fs'
 import { readFile } from 'node:fs/promises'
 import { repositoryClientBuildEnvironment, resolveClientBuildEnvironment } from '../../scripts/client-build-environment.ts'
 import { packagedImportsPlugin } from './scripts/desktop-bundle-imports.mjs'
@@ -21,6 +21,13 @@ const mainProcessImports = { packages: new Set(['electron', ...Object.keys(manif
 const preloadImports = { packages: new Set(['electron', 'events', 'timers', 'url']), nodeBuiltins: false }
 
 const REPOSITORY_ROOT = fileURLToPath(new URL('../..', import.meta.url))
+
+// TypeScript uses the adjacent declaration without copying the shared MJS implementation.
+// The Desktop bundle starts from compiled Host JS, so stage that implementation beside its import.
+copyFileSync(
+  fileURLToPath(new URL('./src/enterprise-distribution.mjs', import.meta.url)),
+  fileURLToPath(new URL('./lib/types/enterprise-distribution.mjs', import.meta.url)),
+)
 
 /** Use the client environment this build already received, otherwise the repository's own version and commit. */
 const clientEnvironment = resolveClientBuildEnvironment(process.env.DSH_CLIENT_VERSION === undefined

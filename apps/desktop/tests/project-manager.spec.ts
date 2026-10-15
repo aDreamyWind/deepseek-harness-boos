@@ -4,7 +4,7 @@ import { dirname, join } from 'node:path'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { resolveDesktopPaths } from '../src/paths.ts'
 import { DesktopProjectManager } from '../src/project-manager.ts'
-import { readProfilePlugins } from '@deepseek-ai/dsh-app-boot'
+import { PROFILE_TEMPLATES, readProfilePlugins } from '@deepseek-ai/dsh-app-boot'
 import { runtimeFixture } from './runtime-fixture.ts'
 
 const roots: string[] = []
@@ -43,6 +43,29 @@ afterEach(() => {
 })
 
 describe('desktop external plugin profile', () => {
+  it('initializes the enterprise release with its bundle and preserves the choice on restart', async () => {
+    const { manager } = setup()
+    const enterprise = new DesktopProjectManager(manager.paths, manager.runtime, true)
+    await enterprise.applyRelease()
+    const manifest = JSON.parse(readFileSync(join(manager.paths.profile, 'package.json'), 'utf8')) as {
+      dsh: { profile: { bundles: string[] } }
+    }
+    expect(manifest.dsh.profile.bundles).toEqual(PROFILE_TEMPLATES['enterprise-web']!.bundles)
+    expect(manifest.dsh.profile.bundles).toContain('@deepseek-ai/dsh-enterprise-bundle')
+    await expect(new DesktopProjectManager(manager.paths, manager.runtime, true).applyRelease()).resolves.toBeUndefined()
+  })
+
+  it('replaces the shipped generic prefix when an enterprise release opens an existing profile', async () => {
+    const { manager } = setup()
+    await manager.applyRelease()
+    seedPlugin(manager)
+    await new DesktopProjectManager(manager.paths, manager.runtime, true).applyRelease()
+    const manifest = JSON.parse(readFileSync(join(manager.paths.profile, 'package.json'), 'utf8')) as {
+      dsh: { profile: { bundles: string[] } }
+    }
+    expect(manifest.dsh.profile.bundles).toEqual([...PROFILE_TEMPLATES['enterprise-web']!.bundles, 'plugin'])
+  })
+
   it('preserves installed packages, profile state, and the lockfile when preparing a launch', async () => {
     const { manager } = setup()
     await manager.applyRelease()

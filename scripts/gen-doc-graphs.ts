@@ -376,7 +376,7 @@ const SERVICE_ROLES: ServiceRole[] = [
     title: 'Credential seam',
     mode: 'seam',
     implementations: ['credentials-local'],
-    consumers: ['api-settings-controller', 'llm-deepseek', 'llm-pi-ai'],
+    consumers: ['api-settings-controller', 'enterprise-account-oidc', 'llm-deepseek', 'llm-enterprise-gateway', 'llm-pi-ai'],
     note: 'Configuration carries references to secrets; providers own the values. Consumers resolve per operation, so a rotated credential reaches the very next request; the settings controller exposes value-free views and write-only storage.',
   },
   {
@@ -389,12 +389,21 @@ const SERVICE_ROLES: ServiceRole[] = [
     note: 'The Host owns browser authorization and local credentials; UI consumers receive state without tokens.',
   },
   {
+    key: 'enterpriseAccount',
+    pkg: 'enterprise-account',
+    title: 'Harness Admin enterprise account',
+    mode: 'seam',
+    implementations: ['enterprise-account-oidc'],
+    consumers: ['api-enterprise-account-controller', 'llm-enterprise-gateway'],
+    note: 'The Host owns confidential-client OIDC credentials and exact gateway-origin checks; browser consumers receive sanitized identity state while the gateway adapter resolves and refreshes access tokens.',
+  },
+  {
     key: 'authorization',
     pkg: 'authorization',
     title: 'Authorization flow registry',
     mode: 'seam',
     implementations: [],
-    consumers: ['llm-pi-ai'],
+    consumers: ['enterprise-account-oidc', 'llm-pi-ai'],
     note: 'Flows are registered by the plugin that knows how to obtain one credential and keyed by the record they write; the seam owns the conversation and the one-attempt-per-key lifecycle, never the protocol.',
   },
   {

@@ -1017,6 +1017,61 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
     ],
   },
   {
+    key: 'enterpriseAccount',
+    summary: 'Enterprise identity operations; token-bearing methods remain Host-only.',
+    description: 'Enterprise identity operations; token-bearing methods remain Host-only.',
+    methods: [
+      {
+        signature: 'abstract getState(): Promise<EnterpriseAccountView>',
+        description: 'Read stored identity presence and the latest login attempt.',
+        parameters: [],
+        returns: 'a complete snapshot without credentials or PKCE secrets.',
+      },
+      {
+        signature: 'abstract startSignIn(): Promise<EnterpriseAccountView>',
+        description: 'Join an active attempt or begin browser authorization through the configured exact redirect URI.',
+        parameters: [],
+        returns: 'the initial snapshot without waiting for browser approval.',
+      },
+      {
+        signature: 'abstract cancelSignIn(id: EnterpriseSignInAttemptId): Promise<EnterpriseAccountView>',
+        description: 'Cancel only the named attempt; an admitted credential commit completes first.',
+        parameters: [{ name: 'id', description: 'attempt identity returned by {@link startSignIn}.' }],
+        returns: 'state after cancellation or commit settlement.',
+      },
+      {
+        signature: 'abstract signOut(): Promise<EnterpriseAccountView>',
+        description: 'Remove the local grant before attempting bounded remote revocation.',
+        parameters: [],
+        returns: 'the signed-out state after local removal.',
+      },
+      {
+        signature: 'abstract watch(signal: AbortSignal): AsyncIterable<EnterpriseAccountView>',
+        description: 'Subscribe to complete snapshots, including an initial value.',
+        parameters: [{ name: 'signal', description: 'subscription lifetime; ending it does not cancel login.' }],
+        returns: 'account snapshots until the signal aborts or provider stops.',
+      },
+      {
+        signature: 'abstract resolveAccessToken(url: string, requiredScopes: readonly string[]): Promise<string | undefined>',
+        description: 'Resolve a current access token for the configured enterprise gateway. Refresh-token rotation is serialized by the credential provider.',
+        parameters: [{ name: 'url', description: 'actual request destination.' }, { name: 'requiredScopes', description: 'scopes the caller needs for this request.' }],
+        returns: 'an access token, or undefined for another origin, missing scopes, or signed-out state.',
+      },
+      {
+        signature: 'abstract refreshAccessToken( url: string, rejectedToken: string, requiredScopes: readonly string[], ): Promise<string | undefined>',
+        description: 'Replace a gateway-rejected token through the serialized refresh-token rotation. A concurrent refresh returns its newer token instead of spending the rejected refresh token again.',
+        parameters: [{ name: 'url', description: 'actual request destination.' }, { name: 'rejectedToken', description: 'access token rejected with HTTP 401.' }, { name: 'requiredScopes', description: 'scopes the retry needs.' }],
+        returns: 'the replacement token, or undefined when the session cannot recover.',
+      },
+      {
+        signature: 'abstract rejectAccessToken(token: string): Promise<void>',
+        description: 'Retire a gateway-rejected access token only if it is still current.',
+        parameters: [{ name: 'token', description: 'token rejected by the gateway request.' }],
+        returns: 'after a matching grant is made unavailable.',
+      },
+    ],
+  },
+  {
     key: 'fileReferences',
     summary: 'Host capability for cancellable file-reference discovery.',
     description: 'Host capability for cancellable file-reference discovery.',
@@ -4073,6 +4128,14 @@ export const EVENT_API: readonly EventApiEntry[] = [
     parameters: [{ name: 'change', description: 'domain, table (`\'\'` for global), key (`\'\'` for global), operation discriminant, and on `put` the new snapshot.' }],
   },
   {
+    name: 'enterprise-account/session-expired',
+    mode: 'emit',
+    signature: '\'enterprise-account/session-expired\'(): void',
+    summary: 'A rejected or unrefreshable enterprise credential was removed from use.',
+    description: 'A rejected or unrefreshable enterprise credential was removed from use.',
+    parameters: [],
+  },
+  {
     name: 'feedback/committed',
     mode: 'parallel',
     signature: '\'feedback/committed\'(inspection: SessionInspection): void',
@@ -5207,6 +5270,26 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   {
     name: 'EncodedImageAttachment',
     declaration: 'export interface EncodedImageAttachment {\n    mediaType: ImageMediaType;\n    data: string;\n    name?: string;\n}',
+  },
+  {
+    name: 'EnterpriseAccountProfile',
+    declaration: 'export interface EnterpriseAccountProfile {\n    readonly subject: string;\n    readonly name: string | null;\n    readonly preferredUsername: string | null;\n    readonly email: string | null;\n    readonly picture: string | null;\n    readonly organizationId: string | null;\n    readonly organizationCode: string | null;\n}',
+  },
+  {
+    name: 'EnterpriseAccountView',
+    declaration: 'export interface EnterpriseAccountView {\n    readonly status: \'signed-out\' | \'signed-in\';\n    readonly profile: EnterpriseAccountProfile | null;\n    readonly attempt: EnterpriseSignInAttemptView | null;\n}',
+  },
+  {
+    name: 'EnterpriseSignInAttemptId',
+    declaration: 'export type EnterpriseSignInAttemptId = Branded<\'EnterpriseSignInAttemptId\'>;',
+  },
+  {
+    name: 'EnterpriseSignInAttemptView',
+    declaration: 'export interface EnterpriseSignInAttemptView {\n    readonly id: EnterpriseSignInAttemptId;\n    readonly phase: \'initializing\' | \'waiting-browser\' | \'exchanging\' | \'committing\' | \'succeeded\' | \'cancelled\' | \'expired\' | \'failed\';\n    readonly authorizeUrl?: string;\n    readonly expiresAt?: number;\n    readonly errorCode?: EnterpriseSignInErrorCode;\n}',
+  },
+  {
+    name: 'EnterpriseSignInErrorCode',
+    declaration: 'export type EnterpriseSignInErrorCode = \'network\' | \'protocol\' | \'expired\' | \'storage\';',
   },
   {
     name: 'EpochHeader',

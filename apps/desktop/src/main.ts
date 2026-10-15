@@ -59,6 +59,12 @@ import { DesktopUpdateOverlays } from './update-overlay.ts'
 import { DesktopQuitConfirmation } from './quit-confirmation.ts'
 import { DesktopTray } from './tray.ts'
 import { DesktopBackgroundNotice } from './background-notice.ts'
+import {
+  enterpriseHostEnvironment,
+  loadDesktopEnterpriseDistribution,
+  resolveDesktopEnterpriseDistribution,
+  type DesktopEnterpriseDistribution,
+} from './enterprise-distribution.mjs'
 
 let focusPrimaryWindow = (): void => {}
 let stopForRecovery = async (): Promise<void> => {}
@@ -75,6 +81,7 @@ let windowsLanguage: string | undefined
  * failure while tearing down a ready backend still reads as `running`.
  */
 let backendReady = false
+let enterpriseDistribution: DesktopEnterpriseDistribution | undefined
 /** Error-level console output of the primary window, attached to crash reports. */
 const rendererConsole = new RendererConsoleTail()
 
@@ -95,7 +102,7 @@ const recovery = new DesktopFatalRecovery({
   show: options => dialog.showMessageBox(options),
   stop: () => { shuttingDown = true; return stopForRecovery() },
   disablePlugins: async () => {
-    const manager = new DesktopProjectManager(resolveDesktopPaths(), runtimeResources())
+    const manager = new DesktopProjectManager(resolveDesktopPaths(), runtimeResources(), enterpriseDistribution !== undefined)
     const backupPath = await manager.disableAllPlugins()
     console.info('Desktop profile recovery completed:', { profilePatchBackup: backupPath ?? null, homePatch: 'unchanged' })
   },
@@ -317,13 +324,19 @@ async function main(): Promise<void> {
   const journalDirectory = process.env.DSH_DESKTOP_UPDATE_JOURNAL_DIR
   const updateJournal = journalDirectory === undefined ? undefined : new DesktopUpdateJournal(journalDirectory, app.getVersion())
   const resources = runtimeResources()
+  const manifest: unknown = JSON.parse(await readFile(join(app.getAppPath(), 'package.json'), 'utf8'))
+  if (typeof manifest !== 'object' || manifest === null) throw new Error('desktop: invalid application manifest')
+  enterpriseDistribution = app.isPackaged
+    ? resolveDesktopEnterpriseDistribution('dshEnterpriseDistribution' in manifest
+      ? manifest.dshEnterpriseDistribution : undefined)
+    : loadDesktopEnterpriseDistribution(process.env, app.getAppPath())
   const paths = resolveDesktopPaths()
   const development = !app.isPackaged
   const primaryRuntime = development
     ? developmentPrimaryRuntime()
     : join(process.resourcesPath, 'runtime', 'primary-runtime')
   const activeProject = paths.profile
-  const manager = new DesktopProjectManager(paths, resources)
+  const manager = new DesktopProjectManager(paths, resources, enterpriseDistribution !== undefined)
   // Dock and Finder launches inherit only launchd's environment; every Host shares one login-shell read.
   const loginShellRead = new AbortController()
   // The probe runs in its own process group, which outlives Desktop unless the read is aborted.
@@ -335,7 +348,12 @@ async function main(): Promise<void> {
     return result.environment
   })
   let hostEnvironment: NodeJS.ProcessEnv = process.env
-  const prepareHostEnvironment = async (): Promise<void> => { hostEnvironment = await loginShell }
+  const prepareHostEnvironment = async (): Promise<void> => {
+    hostEnvironment = {
+      ...await loginShell,
+      ...(enterpriseDistribution === undefined ? {} : enterpriseHostEnvironment(enterpriseDistribution)),
+    }
+  }
   let quitting = false
   let startup: Promise<void> | undefined
   let workspaceRecovery: Promise<void> | undefined
@@ -456,43 +474,45 @@ async function main(): Promise<void> {
         analyticsEnabled = await welcomeBackend.analyticsEnabled().catch(() => false)
         if (!reportedLaunch) { reportedLaunch = true; void track('desktop_app_launch', {}) }
         stopAccount?.()
-        const accountBackend = welcomeBackend.account
-        stopAccount = accountBackend.watch((state) => {
-          if (quitting) return
-          if (welcomeWindow !== undefined && !welcomeWindow.isDestroyed()) welcomeWindow.webContents.send(WELCOME_IPC.state, state)
-          const attempt = state.attempt
-          if (attempt?.phase === 'waiting-browser' && attempt.authorizeUrl !== undefined && openedAttempt !== attempt.id) {
-            openedAttempt = attempt.id
-            void shell.openExternal(platformLoginUrl(attempt.authorizeUrl)).catch(() => undefined)
-          }
-          if ((attempt?.phase === 'failed' || attempt?.phase === 'expired') && returnedAttempt !== attempt.id) {
-            returnedAttempt = attempt.id
-            focusPrimaryWindow()
-          }
-          if (state.status === 'credential-stored' && attempt?.phase === 'succeeded' && welcomeWindow !== undefined) void enterWorkspace({ activate: false }).catch(() => undefined)
-          if (previousAccountStatus === 'credential-stored' && state.status === 'signed-out') {
-            void readWelcomeState().then(async (value) => {
-              if (needsWelcome(value) && !quitting) {
-                enteredWorkspace = false
-                await showWelcome()
-                if (welcomeWindow !== undefined && !welcomeWindow.isDestroyed()) welcomeWindow.webContents.send(WELCOME_IPC.state, state)
-              }
-              return undefined
-            }).catch(() => undefined)
-          }
-          previousAccountStatus = state.status
-        }, () => {
-          // The stream reconnects; a transport failure does not change account state.
-        }, () => {
-          void readWelcomeState().then(async (value) => {
-            if (!needsWelcome(value) || quitting) return
-            pendingWelcomeNotice = 'session-expired'
-            enteredWorkspace = false
-            await showWelcome()
-            const state = await accountBackend.state()
+        if (enterpriseDistribution === undefined) {
+          const accountBackend = welcomeBackend.account
+          stopAccount = accountBackend.watch((state) => {
+            if (quitting) return
             if (welcomeWindow !== undefined && !welcomeWindow.isDestroyed()) welcomeWindow.webContents.send(WELCOME_IPC.state, state)
-          }).catch(() => undefined)
-        }, (enabled) => { analyticsEnabled = enabled })
+            const attempt = state.attempt
+            if (attempt?.phase === 'waiting-browser' && attempt.authorizeUrl !== undefined && openedAttempt !== attempt.id) {
+              openedAttempt = attempt.id
+              void shell.openExternal(platformLoginUrl(attempt.authorizeUrl)).catch(() => undefined)
+            }
+            if ((attempt?.phase === 'failed' || attempt?.phase === 'expired') && returnedAttempt !== attempt.id) {
+              returnedAttempt = attempt.id
+              focusPrimaryWindow()
+            }
+            if (state.status === 'credential-stored' && attempt?.phase === 'succeeded' && welcomeWindow !== undefined) void enterWorkspace({ activate: false }).catch(() => undefined)
+            if (previousAccountStatus === 'credential-stored' && state.status === 'signed-out') {
+              void readWelcomeState().then(async (value) => {
+                if (needsWelcome(value) && !quitting) {
+                  enteredWorkspace = false
+                  await showWelcome()
+                  if (welcomeWindow !== undefined && !welcomeWindow.isDestroyed()) welcomeWindow.webContents.send(WELCOME_IPC.state, state)
+                }
+                return undefined
+              }).catch(() => undefined)
+            }
+            previousAccountStatus = state.status
+          }, () => {
+            // The stream reconnects; a transport failure does not change account state.
+          }, () => {
+            void readWelcomeState().then(async (value) => {
+              if (!needsWelcome(value) || quitting) return
+              pendingWelcomeNotice = 'session-expired'
+              enteredWorkspace = false
+              await showWelcome()
+              const state = await accountBackend.state()
+              if (welcomeWindow !== undefined && !welcomeWindow.isDestroyed()) welcomeWindow.webContents.send(WELCOME_IPC.state, state)
+            }).catch(() => undefined)
+          }, (enabled) => { analyticsEnabled = enabled })
+        }
       },
       stop: async () => {
         analyticsEnabled = false
@@ -1196,6 +1216,15 @@ async function main(): Promise<void> {
   }
   const openInitialWindow = async (): Promise<void> => {
     if (quitting || recovery.active) return
+    if (enterpriseDistribution !== undefined) {
+      const preference = await welcomeBackend?.readLocalePreference()
+      if (isQuitting() || backend.state.phase !== 'ready') return
+      locale = resolveDesktopStartupLocale(preference ?? null, systemLanguages)
+      windowsLanguage = locale.id
+      refreshApplicationMenu()
+      await enterWorkspace()
+      return
+    }
     const state = await readWelcomeState()
     if (isQuitting() || backend.state.phase !== 'ready') return
     locale = resolveDesktopStartupLocale(state.localePreference, systemLanguages)
@@ -1281,8 +1310,6 @@ async function main(): Promise<void> {
   })
 
   mainWindow = createMainWindow()
-  const manifest: unknown = JSON.parse(await readFile(join(app.getAppPath(), 'package.json'), 'utf8'))
-  if (typeof manifest !== 'object' || manifest === null) throw new Error('desktop policy: invalid application manifest')
   const developmentPolicy = app.isPackaged ? undefined : process.env.DSH_DESKTOP_MANDATORY_UPDATE_CONFIG
   const policyInput: unknown = app.isPackaged
     ? ('dshMandatoryUpdatePolicy' in manifest ? manifest.dshMandatoryUpdatePolicy : undefined)

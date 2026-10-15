@@ -1,0 +1,25 @@
+# Bilingual-pair consistency record for 2026-10-09-enterprise-oidc-profile-layer.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-10-09-enterprise-oidc-profile-layer.md
+/agent-note-enterprise-oidc-and-gateway-profile-layer:
+  en: 4c3ffbdf92c3b828
+  zh: 6f35a7673985bc5d
+/agent-note-enterprise-oidc-and-gateway-profile-layer/problem:
+  en: 7a1123562174cc49
+  zh: 6d0a51ac6e305af0
+/agent-note-enterprise-oidc-and-gateway-profile-layer/decision:
+  en: 9b67e8c611c7760a
+  zh: 7940eada34b54c3c
+/agent-note-enterprise-oidc-and-gateway-profile-layer/alternatives-considered:
+  en: b166b1b5185627b2
+  zh: 95af1d26ddc7dabb
+/agent-note-enterprise-oidc-and-gateway-profile-layer/consequences:
+  en: 6d6dc8f4753509ed
+  zh: a050b0019a91f341
+/agent-note-enterprise-oidc-and-gateway-profile-layer/verification:
+  en: ce0edef94e0a0e96
+  zh: 9c7cbda83c0d267c
+/agent-note-enterprise-oidc-and-gateway-profile-layer/related:
+  en: 6a4ecd45a102251a
+  zh: 7ff206985b96b6fa

@@ -827,6 +827,50 @@ export interface Config {
 ```
 <!-- END GENERATED config-catalog:@deepseek-ai/dsh-deepseek-account-platform -->
 
+<!-- BEGIN GENERATED config-catalog:@deepseek-ai/dsh-enterprise-account-oidc -->
+<a id="deepseek-aidsh-enterprise-account-oidc"></a>
+
+## `@deepseek-ai/dsh-enterprise-account-oidc`
+
+- `inject`: `credentials` · `authorization`
+- `source`: [`packages/credentials/enterprise-account-oidc/src/index.ts:45`](../packages/credentials/enterprise-account-oidc/src/index.ts)
+
+```ts config-catalog
+/** Deployment-specific enterprise OIDC choices. */
+export interface Config {
+  /** Exact OpenID issuer configured by the enterprise management service. */
+  issuer: string
+  /** OIDC client identifier registered for this Harness surface. */
+  clientId: string
+  /** Confidential-client secret supplied only for a secret-based authentication method. */
+  clientSecret?: string
+  /** Token-endpoint client authentication; Desktop public clients use `none`. */
+  clientAuthMethod?: ClientAuthMethod
+  /** Registered redirect URI or the portless loopback template for a native client. */
+  redirectUri: string
+  /** Whether each login uses the configured URI or allocates a random loopback port. */
+  redirectMode?: 'fixed' | 'loopback-random-port'
+  /** Exact HTTP(S) origin allowed to receive the access token. */
+  gatewayOrigin: string
+  /** OIDC scopes requested during login. */
+  scopes?: string[]
+  /** Upper bound for one browser login attempt. */
+  attemptTimeoutMs?: number
+  /** Deadline for each discovery, token, UserInfo, JWKS, or revocation request. */
+  requestTimeoutMs?: number
+  /** Refresh an access token this long before its expiry. */
+  refreshBeforeExpiryMs?: number
+  /** Allowed ID-token clock skew. */
+  clockSkewSeconds?: number
+  /** Permit an HTTP issuer only when it uses a loopback hostname. */
+  allowLoopbackHttp?: boolean
+}
+
+/** Token-endpoint authentication methods supported by Harness Admin. */
+export type ClientAuthMethod = 'none' | 'client_secret_basic' | 'client_secret_post'
+```
+<!-- END GENERATED config-catalog:@deepseek-ai/dsh-enterprise-account-oidc -->
+
 <!-- BEGIN GENERATED config-catalog:@deepseek-ai/dsh-experimental-agent-team -->
 <a id="deepseek-aidsh-experimental-agent-team"></a>
 
@@ -1604,6 +1648,32 @@ export interface Config extends ProtocolConfig {
 }
 ```
 <!-- END GENERATED config-catalog:@deepseek-ai/dsh-llm-deepseek-api-key -->
+
+<!-- BEGIN GENERATED config-catalog:@deepseek-ai/dsh-llm-enterprise-gateway -->
+<a id="deepseek-aidsh-llm-enterprise-gateway"></a>
+
+## `@deepseek-ai/dsh-llm-enterprise-gateway`
+
+- `inject`: `llm` · `enterpriseAccount`
+- `refs`: [`PiAiModelProfile`](../packages/llm/llm-pi-ai/src/index.ts)
+- `source`: [`packages/llm/llm-enterprise-gateway/src/index.ts:39`](../packages/llm/llm-enterprise-gateway/src/index.ts)
+
+```ts config-catalog
+/** Manually configured Harness Admin model catalog and gateway address. */
+export interface Config {
+  /** OpenAI-compatible root ending in `/v1`. */
+  gatewayBaseURL: string
+  /** Harness provider route shown in model selectors. */
+  provider?: string
+  /** Provider label shown in model selectors. */
+  displayName?: string
+  /** Harness Admin model codes and their client-side capability metadata. */
+  models: PiAiModelProfile[]
+  /** Permit an HTTP gateway only on a loopback hostname. */
+  allowLoopbackHttp?: boolean
+}
+```
+<!-- END GENERATED config-catalog:@deepseek-ai/dsh-llm-enterprise-gateway -->
 
 <!-- BEGIN GENERATED config-catalog:@deepseek-ai/dsh-llm-pi-ai -->
 <a id="deepseek-aidsh-llm-pi-ai"></a>
@@ -4350,6 +4420,7 @@ export interface Config {
 | `@deepseek-ai/dsh-acp-app` | `cmdlineArgs` | [`packages/bundle/acp-app/src/index.ts`](../packages/bundle/acp-app/src/index.ts) |
 | `@deepseek-ai/dsh-agent` | — | [`packages/core/agent/src/index.ts`](../packages/core/agent/src/index.ts) |
 | `@deepseek-ai/dsh-api-account-controller` | `deepseekAccount` · `agents` | [`packages/api/account-controller/src/index.ts`](../packages/api/account-controller/src/index.ts) |
+| `@deepseek-ai/dsh-api-enterprise-account-controller` | `enterpriseAccount` | [`packages/api/enterprise-account-controller/src/index.ts`](../packages/api/enterprise-account-controller/src/index.ts) |
 | `@deepseek-ai/dsh-api-remotes` | `typertGateway` | [`packages/api/remotes/src/index.ts`](../packages/api/remotes/src/index.ts) |
 | `@deepseek-ai/dsh-authorization` | `credentials` | [`packages/credentials/authorization/src/index.ts`](../packages/credentials/authorization/src/index.ts) |
 | `@deepseek-ai/dsh-browser-use` | — | [`packages/browser-use/browser-use/src/index.ts`](../packages/browser-use/browser-use/src/index.ts) |
@@ -4368,6 +4439,7 @@ export interface Config {
 | `@deepseek-ai/dsh-client-ui-deliverables` | `systemPrompt` · `connection` · `sessionQuery` · `sessionController` · `workspaceFiles` · `fs` · `sandboxPolicy` · `workspaceChanges` | [`packages/client/ui-deliverables/src/index.ts`](../packages/client/ui-deliverables/src/index.ts) |
 | `@deepseek-ai/dsh-client-ui-directory-picker-browse` | — | [`packages/client/ui-directory-picker-browse/src/index.ts`](../packages/client/ui-directory-picker-browse/src/index.ts) |
 | `@deepseek-ai/dsh-client-ui-directory-picker-native` | — | [`packages/client/ui-directory-picker-native/src/index.ts`](../packages/client/ui-directory-picker-native/src/index.ts) |
+| `@deepseek-ai/dsh-client-ui-enterprise-account` | — | [`packages/client/ui-enterprise-account/src/index.ts`](../packages/client/ui-enterprise-account/src/index.ts) |
 | `@deepseek-ai/dsh-client-ui-goal` | — | [`packages/client/ui-goal/src/index.ts`](../packages/client/ui-goal/src/index.ts) |
 | `@deepseek-ai/dsh-client-ui-input-trigger` | — | [`packages/client/ui-input-trigger/src/index.ts`](../packages/client/ui-input-trigger/src/index.ts) |
 | `@deepseek-ai/dsh-client-ui-jobs` | — | [`packages/client/ui-jobs/src/index.ts`](../packages/client/ui-jobs/src/index.ts) |
@@ -4412,6 +4484,7 @@ export interface Config {
 | `@deepseek-ai/dsh-config-editor` | `loader` · `profileContext` | [`packages/boot/config-editor/src/index.ts`](../packages/boot/config-editor/src/index.ts) |
 | `@deepseek-ai/dsh-cordis-client-runner` | — | [`packages/extensions/cordis-client-runner/src/index.ts`](../packages/extensions/cordis-client-runner/src/index.ts) |
 | `@deepseek-ai/dsh-deepseek-llm-api-extensions` | — | [`packages/llm/deepseek-llm-api-extensions/src/index.ts`](../packages/llm/deepseek-llm-api-extensions/src/index.ts) |
+| `@deepseek-ai/dsh-enterprise-bundle` | — | [`packages/bundle/enterprise/src/index.ts`](../packages/bundle/enterprise/src/index.ts) |
 | `@deepseek-ai/dsh-experimental-auto-review` | `approval` · `llm` · `permissionPresets` · `sessions` · `tools` | [`packages/experimental/auto-review/src/index.ts`](../packages/experimental/auto-review/src/index.ts) |
 | `@deepseek-ai/dsh-experimental-client-ui-agent-team` | — | [`packages/experimental/client-ui-agent-team/src/index.ts`](../packages/experimental/client-ui-agent-team/src/index.ts) |
 | `@deepseek-ai/dsh-experimental-client-ui-claude-code-mods` | — | [`packages/experimental/client-ui-claude-code-mods/src/index.ts`](../packages/experimental/client-ui-claude-code-mods/src/index.ts) |
@@ -4460,6 +4533,7 @@ export interface Config {
 | `@deepseek-ai/dsh-compaction` | `CompactionEngine` | — | [`packages/compaction/compaction/src/index.ts`](../packages/compaction/compaction/src/index.ts) |
 | `@deepseek-ai/dsh-credentials` | `CredentialProvider` | — | [`packages/credentials/credentials/src/index.ts`](../packages/credentials/credentials/src/index.ts) |
 | `@deepseek-ai/dsh-deepseek-account` | `DeepSeekAccount` | — | [`packages/credentials/deepseek-account/src/index.ts`](../packages/credentials/deepseek-account/src/index.ts) |
+| `@deepseek-ai/dsh-enterprise-account` | `EnterpriseAccount` | — | [`packages/credentials/enterprise-account/src/index.ts`](../packages/credentials/enterprise-account/src/index.ts) |
 | `@deepseek-ai/dsh-file-reference` | `FileReferenceService` | — | [`packages/context/file-reference/src/index.ts`](../packages/context/file-reference/src/index.ts) |
 | `@deepseek-ai/dsh-fs` | `FileSystem` | — | [`packages/fs/fs/src/index.ts`](../packages/fs/fs/src/index.ts) |
 | `@deepseek-ai/dsh-host-directory-picker` | `DirectoryPicker` | — | [`packages/host/directory-picker/src/index.ts`](../packages/host/directory-picker/src/index.ts) |

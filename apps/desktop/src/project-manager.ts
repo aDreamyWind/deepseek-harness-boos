@@ -23,13 +23,15 @@ import type { DesktopPaths } from './paths.ts'
 import type { DesktopRelease } from './release.ts'
 import { readDesktopRuntime } from './runtime-tree.ts'
 import {
-  initProfile, PROFILE_TEMPLATES, removeLinkProjections, sanitizeProfile, type ProfileTemplate,
+  initProfile, PROFILE_TEMPLATES, readProfileManifest, removeLinkProjections, sanitizeProfile,
+  writeProfileManifest, type ProfileTemplate,
 } from '@deepseek-ai/dsh-app-boot'
 
 const PROJECT_NAME = '@deepseek-ai/dsh-desktop-runtime'
 const DSH_PACKAGE = '@deepseek-ai/dsh'
 const CORE_BUILD_PACKAGE = '@deepseek-ai/dsh-subprocess-local'
 const WEB_PROFILE = PROFILE_TEMPLATES.web as ProfileTemplate
+const ENTERPRISE_WEB_PROFILE = PROFILE_TEMPLATES['enterprise-web'] as ProfileTemplate
 const WORKSPACE_SETTINGS = 'nodeLinker: hoisted\nautoInstallPeers: false\n'
 function writeJson(path: string, value: unknown): void {
   writeFileSync(path, `${JSON.stringify(value, undefined, 2)}\n`, { mode: 0o600 })
@@ -66,7 +68,12 @@ export class DesktopProjectManager {
   constructor(
     readonly paths: DesktopPaths,
     readonly runtime: { readonly dsh: string },
+    readonly enterprise = false,
   ) {}
+
+  private get profileBundles(): readonly string[] {
+    return (this.enterprise ? ENTERPRISE_WEB_PROFILE : WEB_PROFILE).bundles
+  }
 
   /**
    * Back up the profile patch and disable third-party bundles without loading application resources.
@@ -74,7 +81,7 @@ export class DesktopProjectManager {
    * @returns Backup path after the locked profile write, or undefined if the patch was absent.
    */
   async disableAllPlugins(): Promise<string | undefined> {
-    return this.withLock(() => sanitizeProfile('dsh', this.paths.profile, WEB_PROFILE.bundles))
+    return this.withLock(() => sanitizeProfile('dsh', this.paths.profile, this.profileBundles))
   }
 
   /**
@@ -85,7 +92,7 @@ export class DesktopProjectManager {
       // Validation only: an unreadable or mismatched runtime descriptor stops preparation before the Host starts.
       readDesktopRuntime(this.runtime.dsh)
       migrateProfileSettings(this.paths.profile)
-      createPluginProfile(this.paths.profile)
+      createPluginProfile(this.paths.profile, this.profileBundles)
       removeLinkProjections(this.paths.profile)
     })
   }
@@ -171,6 +178,18 @@ export function createDevelopmentProjectMetadata(projectDir: string, release: De
 }
 
 /** Create the first external plugin profile without running a package manager. */
-export function createPluginProfile(projectDir: string): void {
-  initProfile(projectDir, WEB_PROFILE.bundles)
+export function createPluginProfile(projectDir: string, bundles: readonly string[] = WEB_PROFILE.bundles): void {
+  initProfile(projectDir, bundles)
+  const manifest = readProfileManifest('dsh desktop', projectDir)
+  const current = manifest.dsh?.profile?.bundles ?? []
+  const shipped = [ENTERPRISE_WEB_PROFILE.bundles, WEB_PROFILE.bundles]
+    .find(candidate => current.length >= candidate.length
+      && candidate.every((name, index) => current[index] === name))
+  if (shipped === undefined) return
+  const next = [...bundles, ...current.slice(shipped.length).filter(name => !bundles.includes(name))]
+  if (next.length === current.length && next.every((name, index) => current[index] === name)) return
+  writeProfileManifest(projectDir, {
+    ...manifest,
+    dsh: { ...manifest.dsh, profile: { ...manifest.dsh?.profile, bundles: next } },
+  })
 }

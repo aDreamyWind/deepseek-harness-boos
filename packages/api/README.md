@@ -28,6 +28,7 @@ The packages below provide the Remote layer; the package READMEs own the exhaust
 |---|---|---|
 | [`remotes/`](remotes/README.md) | Chooses which Host capabilities and events the Client can consume. | — |
 | [`gateway/`](gateway/README.md) | Carries typed unary calls, multiplexed streams with their Client uplinks, and forwarded Host events. | `ctx.typertGateway` / `ctx.remote` |
+| [`enterprise-account-controller/`](enterprise-account-controller/README.md) | Exposes enterprise OIDC login commands and credential-free identity state. | `ctx.enterpriseAccountController` / `ctx.remote.enterpriseAccount` |
 | [`job-controller/`](job-controller/README.md) | Streams one background job's observation record to the Client. | `ctx.jobController` / `ctx.remote.job` |
 | [`session-controller/`](session-controller/README.md) | Owns Session commands, history streams, live control state, and Agent/Session identity policy. | `ctx.sessionController` / `ctx.remote.session` |
 | [`settings-controller/`](settings-controller/README.md) | Owns the configuration-surface reads and writes over the settings-domain seams. | `ctx.settingsController`, `ctx.credentialsController` / `ctx.remote.settings`, `ctx.remote.credentials` |

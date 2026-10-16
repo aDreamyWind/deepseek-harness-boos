@@ -32,16 +32,17 @@ Create separate Harness Admin clients for Desktop and Web. Register Desktop as a
 
 Register Web as a confidential server-side application using `client_secret_basic`. Operations configures the `enterprise-web` Host once; browser users configure nothing. Local development can use `http://127.0.0.1:3080/oauth/callback`. Production uses the actual public HTTPS URL, such as `https://harness.company.example/oauth/callback`, and the reverse proxy forwards that path unchanged to the Harness Host. The configured Web callback must exactly match its registration.
 
-```sh
-export DSH_ENTERPRISE_OIDC_ISSUER=http://localhost:8080
-export DSH_ENTERPRISE_GATEWAY_BASE_URL=http://localhost:8080/v1
-export DSH_ENTERPRISE_MODELS='[{"id":"Harness Admin model code"}]'
-export DSH_ENTERPRISE_ALLOW_LOOPBACK_HTTP=true
+```dotenv
+HARNESS_ADMIN_OIDC_ISSUER=http://localhost:8080
+HARNESS_ADMIN_GATEWAY_BASE_URL=http://localhost:8080/v1
+HARNESS_ADMIN_MODELS='[{"id":"Harness Admin model code"}]'
 
-export DSH_ENTERPRISE_WEB_OIDC_CLIENT_ID='<Web confidential client id>'
-export DSH_ENTERPRISE_WEB_OIDC_CLIENT_SECRET='<Host-only Web client secret>'
-export DSH_ENTERPRISE_WEB_OIDC_REDIRECT_URI=http://127.0.0.1:3080/oauth/callback
+HARNESS_ADMIN_WEB_OIDC_CLIENT_ID='<Web confidential client id>'
+HARNESS_ADMIN_WEB_OIDC_CLIENT_SECRET='<Host-only Web client secret>'
+HARNESS_ADMIN_WEB_OIDC_REDIRECT_URI=http://127.0.0.1:3080/oauth/callback
 ```
+
+The repository's `pnpm run start:enterprise-web` command enables loopback HTTP for this local configuration before it starts the profile. The `.env` file cannot set the `DSH_ENTERPRISE_ALLOW_LOOPBACK_HTTP` security switch. Production deployments use HTTPS and do not enable it.
 
 For an enterprise Desktop release, copy `apps/desktop/enterprise-desktop.example.json` to a private release file, fill its issuer, public Desktop client ID, `/v1` gateway URL, and Admin model codes, then set `DSH_DESKTOP_ENTERPRISE_CONFIG` in the packager's `.env.macos` or `.env.windows` to that file. The validated public settings are embedded in the application manifest and projected into the private Host child on launch. The file rejects `clientSecret`; the installed application needs no employee configuration.
 
@@ -62,7 +63,7 @@ No model request prefix changes.
 
 <a id="known-limitations-and-deferred-work"></a>
 
-- Harness Admin does not yet expose `GET /v1/models`, so `DSH_ENTERPRISE_MODELS` must list the Admin model codes manually.
+- Harness Admin does not yet expose `GET /v1/models`, so `HARNESS_ADMIN_MODELS` must list the Admin model codes manually.
 - The gateway currently supports `/v1/chat/completions`, not `/v1/responses`. Tool calls, multimodal content, and streaming tool calls depend on the selected upstream model and provider.
 - The shipped model routes all use Harness Admin while this patch is active. A later user patch can still add another adapter, so deployment owners must not reintroduce direct-provider routes when gateway-only routing is required.
 - Harness Admin enforces model invocation and quota policy. Department or user assignment of Skills and MCP servers requires a separate policy-projection integration.

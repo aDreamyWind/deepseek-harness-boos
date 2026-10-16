@@ -201,7 +201,7 @@
     "mock:llm": "node --import tsx packages/test-support/llm-mock-server/src/bin.ts",
     "setup:env": "node scripts/ensure-local-env.mjs",
     "start:web": "node --import tsx/esm apps/cli/src/bin.ts web",
-    "start:enterprise-web": "node --import tsx/esm apps/cli/src/bin.ts enterprise-web",
+    "start:enterprise-web": "node --import tsx/esm scripts/start-enterprise-web.ts",
     "dev:web": "tsx scripts/dev-web.ts --poll",
     "postinstall": "node scripts/ensure-local-env.mjs && node scripts/install-lefthook.mjs"
   },

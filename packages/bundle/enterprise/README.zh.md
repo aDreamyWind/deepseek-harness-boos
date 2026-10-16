@@ -32,16 +32,17 @@ kind: "package-bundle"
 
 Web 客户端登记为使用 `client_secret_basic` 的机密服务端应用。运维只需为 `enterprise-web` Host 配置一次，浏览器用户无需配置。本地开发可以使用 `http://127.0.0.1:3080/oauth/callback`。正式环境使用真实公网 HTTPS 地址，例如 `https://harness.company.example/oauth/callback`，并由反向代理把该路径原样转发到 Harness Host。配置的 Web 回调必须与登记值完全一致。
 
-```sh
-export DSH_ENTERPRISE_OIDC_ISSUER=http://localhost:8080
-export DSH_ENTERPRISE_GATEWAY_BASE_URL=http://localhost:8080/v1
-export DSH_ENTERPRISE_MODELS='[{"id":"Harness Admin model code"}]'
-export DSH_ENTERPRISE_ALLOW_LOOPBACK_HTTP=true
+```dotenv
+HARNESS_ADMIN_OIDC_ISSUER=http://localhost:8080
+HARNESS_ADMIN_GATEWAY_BASE_URL=http://localhost:8080/v1
+HARNESS_ADMIN_MODELS='[{"id":"Harness Admin model code"}]'
 
-export DSH_ENTERPRISE_WEB_OIDC_CLIENT_ID='<Web confidential client id>'
-export DSH_ENTERPRISE_WEB_OIDC_CLIENT_SECRET='<Host-only Web client secret>'
-export DSH_ENTERPRISE_WEB_OIDC_REDIRECT_URI=http://127.0.0.1:3080/oauth/callback
+HARNESS_ADMIN_WEB_OIDC_CLIENT_ID='<Web confidential client id>'
+HARNESS_ADMIN_WEB_OIDC_CLIENT_SECRET='<Host-only Web client secret>'
+HARNESS_ADMIN_WEB_OIDC_REDIRECT_URI=http://127.0.0.1:3080/oauth/callback
 ```
+
+仓库中的 `pnpm run start:enterprise-web` 会在启动 profile 前为该本地配置启用回环 HTTP。`.env` 不能设置 `DSH_ENTERPRISE_ALLOW_LOOPBACK_HTTP` 安全开关。正式环境使用 HTTPS，不启用该开关。
 
 构建 Desktop 企业版时，把 `apps/desktop/enterprise-desktop.example.json` 复制为私有发布配置，填写 issuer、Desktop 公开 client ID、`/v1` 网关地址和 Admin 模型编码，再在打包程序的 `.env.macos` 或 `.env.windows` 中用 `DSH_DESKTOP_ENTERPRISE_CONFIG` 指向该文件。校验后的公开设置会写入应用 manifest，并在启动时投影到私有 Host 子进程。该文件拒绝 `clientSecret`；安装后的应用不需要员工配置。
 
@@ -62,7 +63,7 @@ Desktop 安装包不包含 Web client secret。Web secret 只存在于 Web Host 
 
 <a id="known-limitations-and-deferred-work"></a>
 
-- Harness Admin 尚未提供 `GET /v1/models`，因此必须在 `DSH_ENTERPRISE_MODELS` 中手动列出 Admin 模型编码。
+- Harness Admin 尚未提供 `GET /v1/models`，因此必须在 `HARNESS_ADMIN_MODELS` 中手动列出 Admin 模型编码。
 - 网关目前支持 `/v1/chat/completions`，不支持 `/v1/responses`。工具调用、多模态内容与流式工具调用取决于所选上游模型和提供商。
 - 该 patch 生效时，随产品交付的模型路由都会使用 Harness Admin。后置的用户 patch 仍可添加其他适配器，因此要求只走网关的部署不能重新引入直连提供器路由。
 - Harness Admin 负责模型调用与额度策略。按部门或个人分配 Skill 与 MCP Server 仍需要单独的策略投影接入。

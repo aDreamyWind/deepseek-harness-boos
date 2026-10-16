@@ -54,7 +54,7 @@ pnpm run build
 pnpm run start:enterprise-web
 ```
 
-示例使用 `http://127.0.0.1:3080/oauth/callback`，Harness Admin 必须登记完全一致的地址。也可以直接运行 `pnpm dsh enterprise-web`；`pnpm dsh web` 仍启动普通上游版本。Desktop 打包和正式环境 HTTPS 配置见[企业 bundle 文档](packages/bundle/enterprise/README.zh.md)。
+示例使用 `http://127.0.0.1:3080/oauth/callback`，Harness Admin 必须登记完全一致的地址。本地启动命令会显式允许回环 HTTP，不会把该安全开关写入 `.env`。`pnpm dsh web` 仍启动普通上游版本。Desktop 打包和正式环境 HTTPS 配置见[企业 bundle 文档](packages/bundle/enterprise/README.zh.md)。
 
 ## 社区与支持
 

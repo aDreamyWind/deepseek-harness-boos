@@ -35,18 +35,18 @@ it('declares the enterprise OIDC and gateway rows through a parseable bundle pat
   expect(rows.find(row => row.id === 'enterprise-account')).toMatchObject({
     name: '@deepseek-ai/dsh-enterprise-account-oidc',
     config: {
-      clientId: { __jsExpr: "ctx.get('profileContext')?.name === 'desktop' ? process.env.DSH_ENTERPRISE_DESKTOP_OIDC_CLIENT_ID : process.env.DSH_ENTERPRISE_WEB_OIDC_CLIENT_ID" },
-      clientSecret: { __jsExpr: "ctx.get('profileContext')?.name === 'desktop' ? undefined : process.env.DSH_ENTERPRISE_WEB_OIDC_CLIENT_SECRET" },
+      clientId: { __jsExpr: "ctx.get('profileContext')?.name === 'desktop' ? process.env.DSH_ENTERPRISE_DESKTOP_OIDC_CLIENT_ID : process.env.HARNESS_ADMIN_WEB_OIDC_CLIENT_ID" },
+      clientSecret: { __jsExpr: "ctx.get('profileContext')?.name === 'desktop' ? undefined : process.env.HARNESS_ADMIN_WEB_OIDC_CLIENT_SECRET" },
       clientAuthMethod: { __jsExpr: "ctx.get('profileContext')?.name === 'desktop' ? 'none' : 'client_secret_basic'" },
-      redirectUri: { __jsExpr: "ctx.get('profileContext')?.name === 'desktop' ? 'http://127.0.0.1/oauth/callback' : process.env.DSH_ENTERPRISE_WEB_OIDC_REDIRECT_URI" },
+      redirectUri: { __jsExpr: "ctx.get('profileContext')?.name === 'desktop' ? 'http://127.0.0.1/oauth/callback' : process.env.HARNESS_ADMIN_WEB_OIDC_REDIRECT_URI" },
       redirectMode: { __jsExpr: "ctx.get('profileContext')?.name === 'desktop' ? 'loopback-random-port' : 'fixed'" },
     },
   })
   expect(rows.find(row => row.id === 'llm-enterprise-gateway')).toMatchObject({
     name: '@deepseek-ai/dsh-llm-enterprise-gateway',
     config: {
-      gatewayBaseURL: { __jsExpr: 'process.env.DSH_ENTERPRISE_GATEWAY_BASE_URL' },
-      models: { __jsExpr: "JSON.parse(process.env.DSH_ENTERPRISE_MODELS ?? '[]')" },
+      gatewayBaseURL: { __jsExpr: 'process.env.DSH_ENTERPRISE_GATEWAY_BASE_URL ?? process.env.HARNESS_ADMIN_GATEWAY_BASE_URL' },
+      models: { __jsExpr: "JSON.parse(process.env.DSH_ENTERPRISE_MODELS ?? process.env.HARNESS_ADMIN_MODELS ?? '[]')" },
     },
   })
   expect(manifest.dependencies).toHaveProperty('@deepseek-ai/dsh-llm-enterprise-gateway')

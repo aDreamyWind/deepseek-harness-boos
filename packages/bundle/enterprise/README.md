@@ -42,6 +42,8 @@ HARNESS_ADMIN_WEB_OIDC_CLIENT_SECRET='<Host-only Web client secret>'
 HARNESS_ADMIN_WEB_OIDC_REDIRECT_URI=http://127.0.0.1:3080/oauth/callback
 ```
 
+`HARNESS_ADMIN_MODELS` must contain at least one entry. Its first model is the default for new Sessions; an existing Session retains the model route recorded in its log until the user selects another available model.
+
 The repository's `pnpm run start:enterprise-web` command enables loopback HTTP for this local configuration before it starts the profile. The `.env` file cannot set the `DSH_ENTERPRISE_ALLOW_LOOPBACK_HTTP` security switch. Production deployments use HTTPS and do not enable it.
 
 For an enterprise Desktop release, copy `apps/desktop/enterprise-desktop.example.json` to a private release file, fill its issuer, public Desktop client ID, `/v1` gateway URL, and Admin model codes, then set `DSH_DESKTOP_ENTERPRISE_CONFIG` in the packager's `.env.macos` or `.env.windows` to that file. The validated public settings are embedded in the application manifest and projected into the private Host child on launch. The file rejects `clientSecret`; the installed application needs no employee configuration.

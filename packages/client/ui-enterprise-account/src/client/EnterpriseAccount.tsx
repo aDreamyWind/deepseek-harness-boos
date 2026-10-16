@@ -80,20 +80,20 @@ export function EnterpriseLoginGate({ useAccount, start, cancel, t }: PropsRunti
       pendingWindow.current = null
     })
   }
-  const status: EnterpriseAccountKey = account.view === undefined ? 'loading'
+  const status: EnterpriseAccountKey | null = account.view === undefined ? 'loading'
     : attempt?.phase === 'expired' ? 'expired'
       : error ? account.failed ? 'streamFailed' : 'failed'
         : attempt?.phase === 'initializing' ? 'initializing'
           : attempt?.phase === 'waiting-browser' ? 'waiting'
             : attempt?.phase === 'exchanging' || attempt?.phase === 'committing' ? 'completing'
-              : 'gateDescription'
+              : null
   return <Modal open headless title={t('gateTitle')} onClose={() => {}} className={css.dialog as string}>
     <div className={css.gate}>
       <div className={css.header}>
         <h2 className={css.title}>{t('gateTitle')}</h2>
         <p className={css.description}>{t('gateDescription')}</p>
       </div>
-      <p className={css.status} role="status">{t(status)}</p>
+      {status !== null && <p className={css.status} role="status">{t(status)}</p>}
       <div className={css.actions}>
         {active && attempt.phase !== 'committing' && <Button variant="outline" className={css.action} disabled={busy}
           onClick={() => { void run(() => cancel(attempt.id)) }}>{t('cancel')}</Button>}

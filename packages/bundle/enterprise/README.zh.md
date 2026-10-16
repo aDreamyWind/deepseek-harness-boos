@@ -42,6 +42,8 @@ HARNESS_ADMIN_WEB_OIDC_CLIENT_SECRET='<Host-only Web client secret>'
 HARNESS_ADMIN_WEB_OIDC_REDIRECT_URI=http://127.0.0.1:3080/oauth/callback
 ```
 
+`HARNESS_ADMIN_MODELS` 必须至少包含一项。第一个模型是新 Session 的默认模型；现有 Session 会保留其日志记录的模型路由，直到用户选择另一个可用模型。
+
 仓库中的 `pnpm run start:enterprise-web` 会在启动 profile 前为该本地配置启用回环 HTTP。`.env` 不能设置 `DSH_ENTERPRISE_ALLOW_LOOPBACK_HTTP` 安全开关。正式环境使用 HTTPS，不启用该开关。
 
 构建 Desktop 企业版时，把 `apps/desktop/enterprise-desktop.example.json` 复制为私有发布配置，填写 issuer、Desktop 公开 client ID、`/v1` 网关地址和 Admin 模型编码，再在打包程序的 `.env.macos` 或 `.env.windows` 中用 `DSH_DESKTOP_ENTERPRISE_CONFIG` 指向该文件。校验后的公开设置会写入应用 manifest，并在启动时投影到私有 Host 子进程。该文件拒绝 `clientSecret`；安装后的应用不需要员工配置。

@@ -12,8 +12,9 @@
 }
 
 .gate {
-  width: min(420px, calc(100vw - 48px));
-  padding: 24px;
+  box-sizing: border-box;
+  width: 100%;
+  padding: 24px 24px 0;
   gap: 20px;
 }
 

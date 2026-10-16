@@ -19,6 +19,11 @@
 - id: account-controller
   disabled: true
 
+- id: agent-default-model
+  config:
+    provider: harness-admin
+    model: !!js "JSON.parse(process.env.DSH_ENTERPRISE_MODELS ?? process.env.HARNESS_ADMIN_MODELS ?? '[]')[0]?.id"
+
 - insert:
     - id: enterprise-account
       name: '@deepseek-ai/dsh-enterprise-account-oidc'

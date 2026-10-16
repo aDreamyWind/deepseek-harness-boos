@@ -1,5 +1,7 @@
 // @vitest-environment jsdom
 /** Enterprise login opens once from the initiating gesture and retains a blocked-popup fallback. */
+import { readFileSync } from 'node:fs'
+import { resolve } from 'node:path'
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, expect, it, vi } from 'vitest'
 import type { GlobalStandardProps } from '@deepseek-ai/dsh-client-ui-slots'
@@ -19,6 +21,16 @@ function gate(view: EnterpriseAccountView, start = vi.fn(async () => {})) {
     useAccount={selector => selector(snapshot)} start={start} cancel={vi.fn(async () => {})}
     signOut={vi.fn(async () => {})} t={key => key in zh ? zh[key as EnterpriseAccountKey] : key} />
 }
+
+it('keeps the idle gate content within the modal and renders its description once', () => {
+  render(gate(signedOut))
+  expect(screen.getAllByText(zh.gateDescription)).toHaveLength(1)
+  const stylesheet = readFileSync(resolve(import.meta.dirname, '../src/client/EnterpriseAccount.module.css'), 'utf8')
+  const gateRule = /^\.gate\s*\{([^}]*)\}/m.exec(stylesheet)?.[1] ?? ''
+  expect(gateRule).toMatch(/box-sizing:\s*border-box;/)
+  expect(gateRule).toMatch(/width:\s*100%;/)
+  expect(gateRule).not.toMatch(/100vw|420px/)
+})
 
 it('opens a placeholder on the first click and navigates it as soon as the authorization URL arrives', async () => {
   const replace = vi.fn()

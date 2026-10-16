@@ -199,9 +199,11 @@
     "demo:ptc": "node scripts/demo-ptc.mjs",
     "demo:inspector": "node --import tsx/esm apps/cli/src/bin.ts web --patch ./packages/experimental/inspector/cordis.source.patch.yml",
     "mock:llm": "node --import tsx packages/test-support/llm-mock-server/src/bin.ts",
+    "setup:env": "node scripts/ensure-local-env.mjs",
     "start:web": "node --import tsx/esm apps/cli/src/bin.ts web",
+    "start:enterprise-web": "node --import tsx/esm apps/cli/src/bin.ts enterprise-web",
     "dev:web": "tsx scripts/dev-web.ts --poll",
-    "postinstall": "node scripts/install-lefthook.mjs"
+    "postinstall": "node scripts/ensure-local-env.mjs && node scripts/install-lefthook.mjs"
   },
   "devDependencies": {
     "@deepseek-ai/dsh-agent": "workspace:*",

@@ -40,6 +40,18 @@ pnpm dsh web
 
 `pnpm run build` prepares the repository artifacts. `pnpm dsh web` uses those built artifacts without rebuilding.
 
+### Run the enterprise Web edition from source
+
+`pnpm install` creates `.env` from [`.env.example`](.env.example) only when `.env` is absent. Edit `.env` once with the Harness Admin Web client ID, Host-only client secret, registered redirect URI, gateway URL, and model codes. Git ignores `.env`, and later installs never replace it.
+
+```sh
+pnpm install
+pnpm run build
+pnpm run start:enterprise-web
+```
+
+The example uses `http://127.0.0.1:3080/oauth/callback`; Harness Admin must register that exact URI. `pnpm dsh enterprise-web` is the equivalent direct command, while `pnpm dsh web` continues to start the ordinary upstream edition. See the [enterprise bundle documentation](packages/bundle/enterprise/README.md) for Desktop packaging and production HTTPS configuration.
+
 ## Community and support
 
 - Submit feedback or bug reports through [GitHub Discussions](https://github.com/deepseek-ai/deepseek-harness/discussions).

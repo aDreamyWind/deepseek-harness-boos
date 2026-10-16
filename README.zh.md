@@ -44,6 +44,18 @@ pnpm dsh web
 
 `pnpm run build` 会准备仓库产物。`pnpm dsh web` 会直接使用这些已构建产物，不会重新构建。
 
+### 从源码运行企业 Web 版
+
+仅当 `.env` 不存在时，`pnpm install` 才会从 [`.env.example`](.env.example) 创建 `.env`。首次启动前，在 `.env` 中填写 Harness Admin Web 客户端 ID、仅限 Host 使用的客户端密钥、已登记的回调地址、网关地址和模型编码。Git 会忽略 `.env`，后续安装也不会覆盖它。
+
+```sh
+pnpm install
+pnpm run build
+pnpm run start:enterprise-web
+```
+
+示例使用 `http://127.0.0.1:3080/oauth/callback`，Harness Admin 必须登记完全一致的地址。也可以直接运行 `pnpm dsh enterprise-web`；`pnpm dsh web` 仍启动普通上游版本。Desktop 打包和正式环境 HTTPS 配置见[企业 bundle 文档](packages/bundle/enterprise/README.zh.md)。
+
 ## 社区与支持
 
 - 通过 [GitHub Discussions](https://github.com/deepseek-ai/deepseek-harness/discussions) 提交反馈或 bug 报告。

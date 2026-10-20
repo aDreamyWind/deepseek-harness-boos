@@ -9,7 +9,7 @@ English | [中文](README.zh.md)
 
 ## Summary
 
-Use Harness Admin as the only configured model provider for an enterprise profile. The package sends the selected Admin model code to its OpenAI-compatible Chat Completions endpoint, obtains the current OIDC access token only on the Host, and refreshes one rejected token before requiring a new login. Model discovery remains deployment configuration until Harness Admin exposes an authenticated `GET /v1/models` endpoint.
+Use Harness Admin as the only configured model provider for an enterprise profile. The Host lists models through authenticated `GET /v1/models` and sends a selected Admin model code to its Chat Completions gateway. The access token stays on the Host, and the package refreshes a rejected token once before requiring a new login.
 
 ## Table of Contents
 
@@ -25,7 +25,7 @@ Use Harness Admin as the only configured model provider for an enterprise profil
 <a id="use-this-package"></a>
 ## Use this package
 
-Mount the package after `llm`, `enterprise-account-oidc`, and their required services. The enterprise bundle supplies this composition and disables the shipped direct-provider adapters.
+Mount the package after `llm`, `agent-default-model`, `enterprise-account-oidc`, and their required services. The enterprise bundle supplies this composition and disables the shipped direct-provider adapters.
 
 ```yaml
 - id: llm-enterprise-gateway
@@ -37,7 +37,7 @@ Mount the package after `llm`, `enterprise-account-oidc`, and their required ser
         name: Enterprise Model
 ```
 
-`gatewayBaseURL` must end in `/v1`. HTTP is accepted only for `localhost`, `127.0.0.1`, or `::1` when `allowLoopbackHttp` is true. `models` is a non-empty list whose `id` values are Harness Admin model codes, not upstream provider model names. The generated [configuration catalog](../../../docs/config-catalog.md#deepseek-aidsh-llm-enterprise-gateway) is the exhaustive source for accepted fields.
+`gatewayBaseURL` must end in `/v1`. HTTP is accepted only for `localhost`, `127.0.0.1`, or `::1` when `allowLoopbackHttp` is true. `models` is a non-empty list of Admin model codes used as metadata hints and the initial default candidate; it does not grant access or limit the models returned by Admin. The generated [configuration catalog](../../../docs/config-catalog.md#deepseek-aidsh-llm-enterprise-gateway) is the exhaustive source for accepted fields.
 
 -----
 
@@ -47,7 +47,7 @@ Mount the package after `llm`, `enterprise-account-oidc`, and their required ser
 <details>
 <summary>Implementation internals — click to expand</summary>
 
-The adapter reuses the maintained pi-ai OpenAI Completions translator for streaming, tools, multimodal message content, and usage chunks. Each request resolves an access token carrying `model.invoke`; HTTP 401 performs one serialized refresh-token rotation and retries only before any response content has reached the caller. A second 401 retires the matching login. HTTP 403, 404, 409, and 429 become stable Harness failure codes without clearing the login.
+The adapter reuses the maintained pi-ai OpenAI Completions translator for streaming, tools, multimodal message content, and usage chunks. Model listing and invocation use a Host-only access token carrying `model.invoke`; listing reads only the Admin-authorized model set and uses Admin names and vision capabilities when present. A directory failure shows no configured fallback models, and direct requests require a successful directory read. HTTP 401 performs one serialized refresh-token rotation; Chat Completions retries only before any response content has reached the caller. A second 401 retires the matching login. HTTP 403, 404, 409, and 429 become stable Harness failure codes without clearing the login. For HTTP 403, inspect the Harness Admin gateway call record to distinguish gateway rejection from a forwarded upstream provider rejection.
 
 | Source | Purpose |
 |---|---|
@@ -78,7 +78,7 @@ Authentication, routing, and gateway error mapping do not change the model reque
 
 <a id="known-limitations-and-deferred-work"></a>
 
-- Harness Admin does not yet expose authenticated `GET /v1/models`, so every selectable model code and its client-side capability metadata must be configured manually.
+- Admin's model directory does not disclose context windows or output limits. Configured model entries can supply those metadata hints; an unconfigured model remains selectable without a claimed context window.
 - The route uses `/v1/chat/completions`; `/v1/responses` is not available. Tool calls, multimodal content, and streaming tool calls ultimately depend on the selected upstream model and provider.
 - Streaming usage is requested with `stream_options.include_usage=true`, but a usage record exists only when the upstream SSE stream returns usage.
 

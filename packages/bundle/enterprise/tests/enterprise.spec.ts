@@ -32,13 +32,16 @@ it('declares the enterprise OIDC and gateway rows through a parseable bundle pat
   for (const id of ['deepseek-account', 'llm-deepseek-account', 'llm-deepseek', 'llm-pi-ai']) {
     expect(entries).toContainEqual(expect.objectContaining({ id, disabled: true }))
   }
-  expect(entries.find(entry => entry.id === 'agent-default-model')).toMatchObject({
+  const rows = entries.flatMap(entry => entry.insert ?? [])
+  for (const id of ['agent-default-model', 'ui-model-selection']) {
+    expect(entries).toContainEqual(expect.objectContaining({ id, disabled: true }))
+  }
+  expect(rows.find(row => row.id === 'enterprise-default-model')).toMatchObject({
     config: {
       provider: 'harness-admin',
       model: { __jsExpr: "JSON.parse(process.env.DSH_ENTERPRISE_MODELS ?? process.env.HARNESS_ADMIN_MODELS ?? '[]')[0]?.id" },
     },
   })
-  const rows = entries.flatMap(entry => entry.insert ?? [])
   expect(rows.find(row => row.id === 'enterprise-account')).toMatchObject({
     name: '@deepseek-ai/dsh-enterprise-account-oidc',
     config: {

@@ -759,6 +759,35 @@ roots(): Agent[]
 
 Source: [`packages/core/agent/src/index.ts`](../../packages/core/agent/src/index.ts)
 
+<a id="ctxenterprisemodeldefaults--enterprisedefaultmodelconfig"></a>
+
+### `ctx.enterpriseModelDefaults` — `EnterpriseDefaultModelConfig`
+
+Replace the upstream default-model provider without changing its configuration or persistence.
+
+```ts cordis-catalog
+/**
+ * Read the deployment default, using the first authorized model when its candidate is unavailable.
+ * @returns a detached selection; a fallback never inherits the candidate's reasoning effort.
+ */
+override currentSelection(): ModelSelection
+
+/**
+ * Publish authenticated model ids without writing a user-specific fallback into deployment config.
+ * @param provider - provider route owning this catalog.
+ * @param models - authorized ids in fallback order; an empty list retains the configured candidate.
+ */
+setAvailableModels(provider: string, models: readonly string[]): void
+
+/**
+ * Remove an unloading provider's availability publication.
+ * @param provider - provider route whose publication is removed.
+ */
+clearAvailableModels(provider: string): void
+```
+
+Source: [`packages/core/agent-enterprise-default-model/src/index.ts`](../../packages/core/agent-enterprise-default-model/src/index.ts)
+
 <a id="agent-events"></a>
 
 ### `agent/*` events

@@ -8,6 +8,16 @@ const roots: Context[] = []
 afterEach(async () => { await Promise.all(roots.splice(0).map(ctx => ctx.fiber.dispose())) })
 const state: EnterpriseAccountView = { status: 'signed-out', profile: null, attempt: null }
 
+it('requires native destinations only when Desktop compatibility is enabled', () => {
+  expect(EnterpriseAccountController.Config({})).toEqual({})
+  expect(EnterpriseAccountController.Config['~standard'].validate({ desktop: {} })).toHaveProperty('issues')
+  expect(EnterpriseAccountController.Config({ desktop: {
+    usageUrl: 'https://admin.example.test/account', topUpUrl: 'https://admin.example.test/account',
+  } })).toEqual({ desktop: {
+    usageUrl: 'https://admin.example.test/account', topUpUrl: 'https://admin.example.test/account',
+  } })
+})
+
 function fixture() {
   const ctx = new Context()
   roots.push(ctx)

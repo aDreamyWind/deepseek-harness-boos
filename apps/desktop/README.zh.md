@@ -34,7 +34,7 @@ Desktop 在原生应用中运行 Harness 工作区。本参考文档说明应用
 
 桌面应用是完整 dsh Web 应用外的一层 Electron 壳。Electron RunAsNode 子进程启动共享 profile runner，Electron 立即从 `dsh-app://app/` 加载打包内的 Web 入口。共享加载页等待 Host 启动注入，然后在同一文档中启动客户端。Electron 将应用 HTTP 请求转发给已认证的 Web Host，转发时丢弃描述 Node fetch 连接而非资源本身的响应头（`transfer-encoding`、`connection`、`keep-alive`），并把插件 bundle 响应标记为 `no-store`，因为其每次启动都变化的 revision 只会在 Chromium 磁盘缓存中累积；WebSocket 流连接到该 Host，仅为归属的应用窗口附加凭据。Node IPC 承载启动注入、就绪与关闭。Desktop 默认监听系统分配的端口，因此不会与 Web 的 `3080` 或系统保留端口冲突；可通过 `webserver.config.port` patch 覆盖。
 
-企业 Desktop 安装包会在打包时通过 `DSH_DESKTOP_ENTERPRISE_CONFIG` 选择并嵌入一份经过校验的公开发行配置。以 [`enterprise-desktop.example.json`](enterprise-desktop.example.json) 作为 Harness Admin issuer、Desktop 公开客户端 ID、`/v1` 网关地址和允许模型编码的源模板。该配置拒绝客户端密钥；安装后的客户端首次启动时会初始化企业 bundle，员工无需设置环境变量、编辑 profile 或安装插件。access token 与 refresh token 只保存在 Desktop Host 的凭据存储中，不会发送给 renderer。未提供该配置的安装包继续使用通用上游 Desktop profile。
+企业 Desktop 安装包会在打包时通过 `DSH_DESKTOP_ENTERPRISE_CONFIG` 选择并嵌入一份经过校验的公开发行配置。以 [`enterprise-desktop.example.json`](enterprise-desktop.example.json) 作为 Harness Admin issuer、Desktop 公开客户端 ID、`/v1` 网关地址和初始默认模型元数据的源模板。可用选项来自登录用户的 Admin 模型目录。该配置拒绝客户端密钥；安装后的客户端首次启动时会初始化企业 bundle，员工无需设置环境变量、编辑 profile 或安装插件。access token 与 refresh token 只保存在 Desktop Host 的凭据存储中，不会发送给 renderer。未提供该配置的安装包继续使用通用上游 Desktop profile。
 
 Desktop 绑定 `127.0.0.1`，即 Electron 为就绪 URL 与 WebSocket 凭据过滤器拨号的地址。WebSocket 流按 Host 监听器使用 `ws:` 或 `wss:`；附加凭据要求 authority 与 scheme 均匹配。
 

@@ -50,7 +50,7 @@ pnpm run build
 pnpm run start:enterprise-web
 ```
 
-The example uses `http://127.0.0.1:3080/oauth/callback`; Harness Admin must register that exact URI. The local start command explicitly permits loopback HTTP without placing that security switch in `.env`. `pnpm dsh web` continues to start the ordinary upstream edition. See the [enterprise bundle documentation](packages/bundle/enterprise/README.md) for Desktop packaging and production HTTPS configuration.
+The example uses `http://127.0.0.1:3080/oauth/callback`; Harness Admin must register that exact URI. The local start command explicitly permits loopback HTTP without placing that security switch in `.env`. `pnpm dsh web` continues to start the ordinary upstream edition. See the [enterprise bundle documentation](packages/bundle/enterprise/README.md) for configuration and the [standalone plugin guide](enterprise/README.md) for packing, exporting sources, and installing into an official checkout.
 
 ## Community and support
 

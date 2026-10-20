@@ -6,8 +6,10 @@ import { expect, vi } from 'vitest'
 import { ok, openStream } from '@deepseek-ai/dsh-remote-mock'
 import { ClientRoster, createClientTest, webApp } from '@deepseek-ai/dsh-client-test-runtime/src/assembly/index.ts'
 import type { EnterpriseAccountView } from '@deepseek-ai/dsh-enterprise-account/types'
+import type {} from '@deepseek-ai/dsh-api-enterprise-account-controller/remote'
 import type { EnterpriseAccountInjected } from '../src/client/EnterpriseAccount.tsx'
 import { EnterpriseLoginGate, EnterpriseAccountSection } from '../src/client/EnterpriseAccount.tsx'
+import * as account from '../src/client/account.ts'
 
 const manifest = JSON.parse(readFileSync(resolve(import.meta.dirname, '../package.json'), 'utf8')) as {
   name: string
@@ -15,7 +17,10 @@ const manifest = JSON.parse(readFileSync(resolve(import.meta.dirname, '../packag
 }
 const test = createClientTest({ roster: ClientRoster.of([...webApp.rows, {
   name: manifest.name, inject: manifest.dsh.client.inject, immediately: false,
-}]) })
+}]), provide: {
+  // This tier replaces generated Remote mounts with contract-free transport proxies.
+  [manifest.name]: account,
+} })
 
 const signedOut: EnterpriseAccountView = { status: 'signed-out', profile: null, attempt: null }
 const signedIn: EnterpriseAccountView = {

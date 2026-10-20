@@ -90,9 +90,6 @@
       "path": "../account-controller"
     },
     {
-      "path": "../enterprise-account-controller"
-    },
-    {
       "path": "../../credentials/deepseek-account"
     }
   ]

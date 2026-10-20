@@ -211,6 +211,8 @@
     "setup:env": "node scripts/ensure-local-env.mjs",
     "start:web": "node --import tsx/esm apps/cli/src/bin.ts web",
     "start:enterprise-web": "node --import tsx/esm scripts/start-enterprise-web.ts",
+    "pack:enterprise": "node enterprise/pack.mjs",
+    "export:enterprise": "node enterprise/export.mjs",
     "dev:web": "tsx scripts/dev-web.ts --poll",
     "dev:bundle-registry": "tsx scripts/dev-bundle-registry.ts",
     "postinstall": "node scripts/ensure-local-env.mjs && node scripts/install-lefthook.mjs",

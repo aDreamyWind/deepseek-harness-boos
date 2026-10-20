@@ -194,6 +194,11 @@ flowchart LR
   pkg_skill_office["skill-office"]
   svc_agents["ctx.agents<br/>Agent service"]
   pkg_acp["acp"]
+  pkg_api_enterprise_model_controller["api-enterprise-model-controller"]
+  svc_enterpriseModelController["ctx.enterpriseModelController<br/>Enterprise authorized model directory"]
+  pkg_client_ui_enterprise_model_selection["client-ui-enterprise-model-selection"]
+  pkg_agent_enterprise_default_model["agent-enterprise-default-model"]
+  svc_enterpriseModelDefaults["ctx.enterpriseModelDefaults<br/>Enterprise default-model availability"]
   svc_agentDefaultModel["ctx.agentDefaultModel<br/>Default Agent model selection"]
   pkg_headless["headless"]
   svc_agentLoop["ctx.agentLoop<br/>Concrete loop driver"]
@@ -302,8 +307,10 @@ flowchart LR
   svc_cordisInspect["ctx.cordisInspect<br/>Dynamic Cordis inspect registry"]
   pkg_agent --> svc_agents
   pkg_agent_default_model --> svc_agentDefaultModel
+  pkg_agent_enterprise_default_model --> svc_enterpriseModelDefaults
   pkg_agent_loop --> svc_agentLoop
   pkg_agent_preset_registry --> svc_agentPresets
+  pkg_api_enterprise_model_controller --> svc_enterpriseModelController
   pkg_api_gateway --> svc_typertGateway
   pkg_api_job_controller --> svc_jobController
   pkg_api_remote_access --> svc_remoteAccess
@@ -499,6 +506,8 @@ flowchart LR
   svc_dynamicCordisRunner --> pkg_tool_cordis
   svc_enterpriseAccount --> pkg_api_enterprise_account_controller
   svc_enterpriseAccount --> pkg_llm_enterprise_gateway
+  svc_enterpriseModelController --> pkg_client_ui_enterprise_model_selection
+  svc_enterpriseModelDefaults --> pkg_llm_enterprise_gateway
   svc_fileReferences --> pkg_api_session_controller
   svc_fileUploads --> pkg_api_session_controller
   svc_fs --> pkg_tool_fs
@@ -690,6 +699,8 @@ flowchart LR
 | `ctx.sessionProjectionCache` | `core` | [`session-projection-cache`](../packages/session/session-projection-cache) | - | [`api-session-controller`](../packages/api/session-controller), [`session-query`](../packages/session-query/session-query), [`session-reference`](../packages/context/session-reference) | - | 按会话持久保存投影单元状态的检查点（节流检查点，以及轮次／结束／分离时的必选检查点），提供缓存投影视图，并加速 prepared Session 的投影恢复。 |
 | `ctx.skills` | `seam` | [`skill`](../packages/skill/skill) | [`sandbox-windows-acl`](../packages/sandbox/sandbox-windows-acl), [`skill-badge`](../packages/experimental/skill-badge), [`skill-filesystem`](../packages/skill/skill-filesystem), [`skill-office`](../packages/skill/skill-office) | [`tool-skill`](../packages/skill/tool-skill) | - | 合并提供方的 skill（技能）目录；tool-skill 渲染会话前缀目录，并加载完整的 skill 正文。 |
 | `ctx.agents` | `core` | [`agent`](../packages/core/agent) | - | [`agent-loop`](../packages/core/agent-loop), [`acp`](../packages/acp/acp), [`subagent`](../packages/subagent/subagent) | - | 拥有实时 Agent 句柄、创建／恢复工厂 seam，以及进程本地的发起方传播。 |
+| `ctx.enterpriseModelController` | `core` | [`api-enterprise-model-controller`](../packages/api/enterprise-model-controller) | - | [`client-ui-enterprise-model-selection`](../packages/client/ui-enterprise-model-selection) | - | 投影官方 Session 模型目录，在带鉴权的模型发现完成后读取默认选择。 |
+| `ctx.enterpriseModelDefaults` | `core` | [`agent-enterprise-default-model`](../packages/core/agent-enterprise-default-model) | - | [`llm-enterprise-gateway`](../packages/llm/llm-enterprise-gateway) | - | 在内存中保留授权模型回退，不把用户可用模型持久化到部署配置。 |
 | `ctx.agentDefaultModel` | `core` | [`agent-default-model`](../packages/core/agent-default-model) | - | [`api-session-controller`](../packages/api/session-controller), [`headless`](../packages/bundle/headless) | - | Reads the default ModelSelection from volatile Config and saves selections through the profile editor. |
 | `ctx.agentLoop` | `bundle` | [`agent-loop`](../packages/core/agent-loop) | - | [`base`](../packages/bundle/base), [`sdk-minimal`](../packages/bundle/sdk-minimal) | - | 唯一的具体循环插件；扩展包依赖 dsh-agent 的事件和服务，而不依赖此包。 |
 | `ctx.schedule` | `core` | [`schedule`](../packages/schedule/schedule) | - | - | - | 独立于 Session 的加载状态存储任务，并将到期消息排入原 Session。 |

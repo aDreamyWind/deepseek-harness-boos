@@ -1,15 +1,39 @@
 /** Authenticated Remote operations for enterprise account UI consumers. */
 import { Context } from '@deepseek-ai/cordis'
+import z from '@deepseek-ai/schemastery'
 import { Remote, TypertRemoteService } from '@deepseek-ai/dsh-typert-protocol'
 import type {} from '@deepseek-ai/dsh-enterprise-account'
 import type { EnterpriseAccountView, EnterpriseSignInAttemptId } from './types.ts'
+import { EnterpriseDesktopAccountController, type DesktopAccountConfig } from './desktop-account.ts'
+
+export { EnterpriseDesktopAccountController } from './desktop-account.ts'
+
+/** Optional compatibility projection for an unmodified Electron shell. */
+export interface Config {
+  /** Mount native account RPC using these enterprise destinations; absent leaves native RPC unmounted. */
+  readonly desktop?: DesktopAccountConfig | undefined
+}
 
 /** Enterprise account commands and reconnect-safe state stream. */
 export class EnterpriseAccountController extends TypertRemoteService {
   static inject = ['enterpriseAccount']
 
-  /** @param ctx - Host with an enterprise account provider mounted. */
-  constructor(ctx: Context) { super(ctx, 'enterpriseAccountController', { namespace: 'enterpriseAccount' }) }
+  static Config: z<Config> = z.object({
+    desktop: z.union([z.object({
+      usageUrl: z.string().required(),
+      topUpUrl: z.string().required(),
+      allowLoopbackHttp: z.boolean(),
+    }), z.const(undefined)]),
+  })
+
+  /**
+   * @param ctx - Host with an enterprise account provider mounted.
+   * @param config - native account projection policy; absent mounts enterprise Remote methods only.
+   */
+  constructor(ctx: Context, config: Config = {}) {
+    super(ctx, 'enterpriseAccountController', { namespace: 'enterpriseAccount' })
+    if (config.desktop !== undefined) ctx.plugin(EnterpriseDesktopAccountController, config.desktop)
+  }
 
   /**
    * Read the current browser-safe account state.

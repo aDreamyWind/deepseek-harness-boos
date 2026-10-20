@@ -1,7 +1,7 @@
 {
   "name": "@deepseek-ai/dsh-api-enterprise-account-controller",
   "description": "Expose credential-free enterprise account operations over authenticated Remote",
-  "version": "0.2.1-alpha.1",
+  "version": "0.2.1-alpha.4",
   "publishConfig": {
     "access": "public"
   },
@@ -44,15 +44,20 @@
   ],
   "license": "MIT",
   "dependencies": {
+    "@deepseek-ai/schemastery": "workspace:~",
     "zod": "^4.4.3"
   },
   "peerDependencies": {
     "@deepseek-ai/cordis": "workspace:~",
+    "@deepseek-ai/dsh-api-account-controller": "workspace:*",
     "@deepseek-ai/dsh-enterprise-account": "workspace:*",
     "@deepseek-ai/dsh-typert-protocol": "workspace:*"
   },
   "devDependencies": {
     "@deepseek-ai/cordis": "workspace:~",
+    "@deepseek-ai/dsh-api-account-controller": "workspace:*",
+    "@deepseek-ai/dsh-agent": "workspace:*",
+    "@deepseek-ai/dsh-deepseek-account": "workspace:*",
     "@deepseek-ai/dsh-enterprise-account": "workspace:*",
     "@deepseek-ai/dsh-typert-protocol": "workspace:*",
     "vitest": "^4.1.0"

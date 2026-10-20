@@ -1,7 +1,7 @@
 {
   "name": "@deepseek-ai/dsh-enterprise-bundle",
   "description": "Harness Admin OIDC and model-gateway layer for enterprise Web and Desktop distributions",
-  "version": "0.2.1-alpha.1",
+  "version": "0.2.1-alpha.4",
   "publishConfig": {
     "access": "public"
   },
@@ -34,6 +34,9 @@
     }
   },
   "dependencies": {
+    "@deepseek-ai/dsh-agent-enterprise-default-model": "workspace:*",
+    "@deepseek-ai/dsh-api-enterprise-model-controller": "workspace:*",
+    "@deepseek-ai/dsh-client-ui-enterprise-model-selection": "workspace:*",
     "@deepseek-ai/dsh-api-enterprise-account-controller": "workspace:*",
     "@deepseek-ai/dsh-client-ui-enterprise-account": "workspace:*",
     "@deepseek-ai/dsh-enterprise-account-oidc": "workspace:*",
@@ -46,6 +49,7 @@
   "devDependencies": {
     "@deepseek-ai/cordis": "workspace:~",
     "@deepseek-ai/cordis-plugin-include": "workspace:~",
-    "js-yaml": "^4.2.0"
+    "js-yaml": "^4.2.0",
+    "playwright": "^1.49.0"
   }
 }

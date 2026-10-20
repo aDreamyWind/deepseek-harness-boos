@@ -21,7 +21,7 @@ The enterprise bundle powers explicit Web and Desktop enterprise editions that r
 <a id="use-this-bundle"></a>
 ## Use this bundle
 
-Run `dsh enterprise-web` for the supported Web edition. A Desktop package whose release configuration names `DSH_DESKTOP_ENTERPRISE_CONFIG` initializes the same enterprise bundle on first launch; employees do not install a plugin, edit a profile, or set environment variables. The patch disables the shipped official-account and direct-provider model routes, then mounts the enterprise OIDC provider, Harness Admin gateway adapter, Remote controller, and mandatory login UI.
+Install the external bundle into a Web or Desktop profile using the [standalone distribution guide](../../../enterprise/README.md). This checkout's `pnpm run start:enterprise-web` helper initializes its custom Web profile without changing the official template registry. The patch disables official-account and direct-provider model routes, then mounts enterprise OIDC, gateway routing, model-selection policy, Remote operations, and the mandatory login UI.
 
 The ordinary `web` profile and generic Desktop package retain the upstream composition. Enterprise changes remain in additive packages and an explicit profile layer, reducing conflicts when merging upstream updates.
 
@@ -42,7 +42,7 @@ HARNESS_ADMIN_WEB_OIDC_CLIENT_SECRET='<Host-only Web client secret>'
 HARNESS_ADMIN_WEB_OIDC_REDIRECT_URI=http://127.0.0.1:3080/oauth/callback
 ```
 
-`HARNESS_ADMIN_MODELS` must contain at least one entry. Its first model is the default for new Sessions; an existing Session retains the model route recorded in its log until the user selects another available model.
+`HARNESS_ADMIN_MODELS` must contain at least one initial default candidate. After login, the Host loads the user's available models from Admin; once loaded, an unavailable default uses the first returned model for new Sessions. Static entries only provide optional model metadata, never an offline or error fallback list. An existing Session retains its logged route until the user selects another available model.
 
 The repository's `pnpm run start:enterprise-web` command enables loopback HTTP for this local configuration before it starts the profile. The `.env` file cannot set the `DSH_ENTERPRISE_ALLOW_LOOPBACK_HTTP` security switch. Production deployments use HTTPS and do not enable it.
 
@@ -65,10 +65,11 @@ No model request prefix changes.
 
 <a id="known-limitations-and-deferred-work"></a>
 
-- Harness Admin does not yet expose `GET /v1/models`, so `HARNESS_ADMIN_MODELS` must list the Admin model codes manually.
+- The model selector requires authenticated `GET /v1/models`; a failed directory request shows no static fallback models. The configured initial default candidate is retained until Admin returns an available model.
 - The gateway currently supports `/v1/chat/completions`, not `/v1/responses`. Tool calls, multimodal content, and streaming tool calls depend on the selected upstream model and provider.
 - The shipped model routes all use Harness Admin while this patch is active. A later user patch can still add another adapter, so deployment owners must not reintroduce direct-provider routes when gateway-only routing is required.
 - Harness Admin enforces model invocation and quota policy. Department or user assignment of Skills and MCP servers requires a separate policy-projection integration.
+- Installing into an official Desktop application retains its native branding and welcome copy; embedded configuration and branded installers require a separate distribution build.
 
 <a id="dev-note"></a>
 ### Dev Note

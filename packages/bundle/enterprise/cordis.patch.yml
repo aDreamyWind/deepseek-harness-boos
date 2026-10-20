@@ -20,11 +20,24 @@
   disabled: true
 
 - id: agent-default-model
-  config:
-    provider: harness-admin
-    model: !!js "JSON.parse(process.env.DSH_ENTERPRISE_MODELS ?? process.env.HARNESS_ADMIN_MODELS ?? '[]')[0]?.id"
+  disabled: true
+
+- id: ui-model-selection
+  disabled: true
 
 - insert:
+    - id: enterprise-default-model
+      name: '@deepseek-ai/dsh-agent-enterprise-default-model'
+      config:
+        provider: harness-admin
+        model: !!js "JSON.parse(process.env.DSH_ENTERPRISE_MODELS ?? process.env.HARNESS_ADMIN_MODELS ?? '[]')[0]?.id"
+
+    - id: enterprise-model-controller
+      name: '@deepseek-ai/dsh-api-enterprise-model-controller'
+
+    - id: enterprise-model-selection
+      name: '@deepseek-ai/dsh-client-ui-enterprise-model-selection'
+
     - id: enterprise-account
       name: '@deepseek-ai/dsh-enterprise-account-oidc'
       config:
@@ -46,6 +59,8 @@
 
     - id: enterprise-account-controller
       name: '@deepseek-ai/dsh-api-enterprise-account-controller'
+      config:
+        desktop: !!js "ctx.get('profileContext')?.name === 'desktop' ? { usageUrl: process.env.HARNESS_ADMIN_PORTAL_URL ?? process.env.HARNESS_ADMIN_OIDC_ISSUER ?? process.env.DSH_ENTERPRISE_OIDC_ISSUER, topUpUrl: process.env.HARNESS_ADMIN_PORTAL_URL ?? process.env.HARNESS_ADMIN_OIDC_ISSUER ?? process.env.DSH_ENTERPRISE_OIDC_ISSUER, allowLoopbackHttp: process.env.DSH_ENTERPRISE_ALLOW_LOOPBACK_HTTP === 'true' } : undefined"
 
     - id: ui-enterprise-account
       name: '@deepseek-ai/dsh-client-ui-enterprise-account'

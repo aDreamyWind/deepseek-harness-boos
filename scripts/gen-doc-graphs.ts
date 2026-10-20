@@ -638,6 +638,22 @@ const SERVICE_ROLES: ServiceRole[] = [
     note: 'Owns live Agent handles, the create/resume factory seam, and process-local initiator propagation.',
   },
   {
+    key: 'enterpriseModelController',
+    pkg: 'api-enterprise-model-controller',
+    title: 'Enterprise authorized model directory',
+    mode: 'core',
+    consumers: ['client-ui-enterprise-model-selection'],
+    note: 'Projects the upstream Session model catalog with the default sampled after authenticated model discovery.',
+  },
+  {
+    key: 'enterpriseModelDefaults',
+    pkg: 'agent-enterprise-default-model',
+    title: 'Enterprise default-model availability',
+    mode: 'core',
+    consumers: ['llm-enterprise-gateway'],
+    note: 'Keeps authorized model fallback in memory without persisting per-user availability into deployment configuration.',
+  },
+  {
     key: 'agentDefaultModel',
     pkg: 'agent-default-model',
     title: 'Default Agent model selection',

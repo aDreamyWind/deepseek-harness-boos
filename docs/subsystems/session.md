@@ -817,6 +817,22 @@ The optional `application` selects a registered file handler without changing th
 
 Generated from source by `scripts/gen-cordis-catalog.ts` (verified fresh by `pnpm run verify-cordis-catalog` in doc-sync; regenerate with `pnpm run gen-cordis-catalog`) — the language sides differ only in locale-specific paired document paths. Signature blocks use a `ts cordis-catalog` fence and keep the original source JSDoc; dispatch modes are defined in the [primer](../cordis-primer.md#dispatch-modes), and the framework-inherited `ctx` API lives in [cordis-api/inherited.md](../cordis-api/inherited.md).
 
+<a id="ctxenterprisemodelcontroller--enterprisemodelcontroller"></a>
+
+### `ctx.enterpriseModelController` — `EnterpriseModelController`
+
+Own the enterprise model directory independently of ordinary Session operations.
+
+```ts cordis-catalog
+/**
+ * Describe the authorized catalog and sample its default after provider discovery completes.
+ * @returns provider groups and failures with the availability-adjusted deployment default.
+ */
+@Remote async modelCatalog(): Promise<ModelCatalog>
+```
+
+Source: [`packages/api/enterprise-model-controller/src/index.ts`](../../packages/api/enterprise-model-controller/src/index.ts)
+
 <a id="ctxsessioncontroller--sessioncontroller"></a>
 
 ### `ctx.sessionController` — `SessionController`

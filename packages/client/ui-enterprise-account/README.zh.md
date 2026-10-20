@@ -24,6 +24,8 @@ kind: "package-reference"
 
 所有产品文案都由类型化的中英文字典管理。Token、授权码、PKCE 数据和原始 ID Token claim 不会进入 Remote API 或浏览器状态。
 
+本插件先通过共享 Remote 传输挂载生成的企业账号方法，再激活界面注册。它不要求修改官方 Remote 汇总；卸载插件会撤回这些方法和界面注册。
+
 <a id="model-experience"></a>
 ## 模型体验
 

@@ -21,7 +21,7 @@ kind: "package-bundle"
 <a id="use-this-bundle"></a>
 ## 使用此 bundle
 
-受支持的 Web 企业版使用 `dsh enterprise-web` 启动。Desktop 打包配置指定 `DSH_DESKTOP_ENTERPRISE_CONFIG` 后，安装包会在首次启动时初始化同一企业 bundle；员工不需要安装插件、编辑 profile 或设置环境变量。该 patch 会禁用随产品交付的官方账号与直连模型路由，再挂载企业 OIDC 提供器、Harness Admin 网关适配器、Remote 控制器和强制登录 UI。
+请按[独立发行指南](../../../enterprise/README.zh.md)把外置 bundle 安装到 Web 或 Desktop profile。本检出目录的 `pnpm run start:enterprise-web` 辅助命令会初始化自定义 Web profile，无需修改官方模板注册表。该 patch 会禁用官方账号和直连模型路由，再挂载企业 OIDC、网关路由、模型选择策略、Remote 操作和强制登录 UI。
 
 普通 `web` profile 和通用 Desktop 安装包继续使用上游组合。企业改动保留在增量包和显式 profile 层中，合并 upstream 更新时的冲突更少。
 
@@ -42,7 +42,7 @@ HARNESS_ADMIN_WEB_OIDC_CLIENT_SECRET='<Host-only Web client secret>'
 HARNESS_ADMIN_WEB_OIDC_REDIRECT_URI=http://127.0.0.1:3080/oauth/callback
 ```
 
-`HARNESS_ADMIN_MODELS` 必须至少包含一项。第一个模型是新 Session 的默认模型；现有 Session 会保留其日志记录的模型路由，直到用户选择另一个可用模型。
+`HARNESS_ADMIN_MODELS` 必须至少包含一项初始默认候选。登录后，Host 从 Admin 加载用户的可用模型；加载后若默认模型不可用，新 Session 会使用返回的第一个模型。静态条目只提供可选模型元数据，绝不会作为离线或错误时的后备列表。现有 Session 保留日志中的路由，直到用户选择另一个可用模型。
 
 仓库中的 `pnpm run start:enterprise-web` 会在启动 profile 前为该本地配置启用回环 HTTP。`.env` 不能设置 `DSH_ENTERPRISE_ALLOW_LOOPBACK_HTTP` 安全开关。正式环境使用 HTTPS，不启用该开关。
 
@@ -65,10 +65,11 @@ Desktop 安装包不包含 Web client secret。Web secret 只存在于 Web Host 
 
 <a id="known-limitations-and-deferred-work"></a>
 
-- Harness Admin 尚未提供 `GET /v1/models`，因此必须在 `HARNESS_ADMIN_MODELS` 中手动列出 Admin 模型编码。
+- 模型选择器需要带鉴权的 `GET /v1/models`；目录请求失败时不显示静态后备模型。Admin 返回可用模型之前会保留配置的初始默认候选。
 - 网关目前支持 `/v1/chat/completions`，不支持 `/v1/responses`。工具调用、多模态内容与流式工具调用取决于所选上游模型和提供商。
 - 该 patch 生效时，随产品交付的模型路由都会使用 Harness Admin。后置的用户 patch 仍可添加其他适配器，因此要求只走网关的部署不能重新引入直连提供器路由。
 - Harness Admin 负责模型调用与额度策略。按部门或个人分配 Skill 与 MCP Server 仍需要单独的策略投影接入。
+- 安装到官方 Desktop 应用时会保留原生品牌和欢迎页文案；内嵌配置和品牌安装包需要独立的分发构建。
 
 <a id="dev-note"></a>
 ### 开发备注

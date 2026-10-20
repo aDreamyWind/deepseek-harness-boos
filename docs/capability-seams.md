@@ -192,6 +192,11 @@ flowchart LR
   pkg_skill_office["skill-office"]
   svc_agents["ctx.agents<br/>Agent service"]
   pkg_acp["acp"]
+  pkg_api_enterprise_model_controller["api-enterprise-model-controller"]
+  svc_enterpriseModelController["ctx.enterpriseModelController<br/>Enterprise authorized model directory"]
+  pkg_client_ui_enterprise_model_selection["client-ui-enterprise-model-selection"]
+  pkg_agent_enterprise_default_model["agent-enterprise-default-model"]
+  svc_enterpriseModelDefaults["ctx.enterpriseModelDefaults<br/>Enterprise default-model availability"]
   svc_agentDefaultModel["ctx.agentDefaultModel<br/>Default Agent model selection"]
   pkg_headless["headless"]
   svc_agentLoop["ctx.agentLoop<br/>Concrete loop driver"]
@@ -300,8 +305,10 @@ flowchart LR
   svc_cordisInspect["ctx.cordisInspect<br/>Dynamic Cordis inspect registry"]
   pkg_agent --> svc_agents
   pkg_agent_default_model --> svc_agentDefaultModel
+  pkg_agent_enterprise_default_model --> svc_enterpriseModelDefaults
   pkg_agent_loop --> svc_agentLoop
   pkg_agent_preset_registry --> svc_agentPresets
+  pkg_api_enterprise_model_controller --> svc_enterpriseModelController
   pkg_api_gateway --> svc_typertGateway
   pkg_api_job_controller --> svc_jobController
   pkg_api_remote_access --> svc_remoteAccess
@@ -497,6 +504,8 @@ flowchart LR
   svc_dynamicCordisRunner --> pkg_tool_cordis
   svc_enterpriseAccount --> pkg_api_enterprise_account_controller
   svc_enterpriseAccount --> pkg_llm_enterprise_gateway
+  svc_enterpriseModelController --> pkg_client_ui_enterprise_model_selection
+  svc_enterpriseModelDefaults --> pkg_llm_enterprise_gateway
   svc_fileReferences --> pkg_api_session_controller
   svc_fileUploads --> pkg_api_session_controller
   svc_fs --> pkg_tool_fs
@@ -688,6 +697,8 @@ flowchart LR
 | `ctx.sessionProjectionCache` | `core` | [`session-projection-cache`](../packages/session/session-projection-cache) | - | [`api-session-controller`](../packages/api/session-controller), [`session-query`](../packages/session-query/session-query), [`session-reference`](../packages/context/session-reference) | - | Durably checkpoints projection unit states per session (throttled + turn/end/detach mandatory points), serves cached projection views, and accelerates prepared-Session projection hydration. |
 | `ctx.skills` | `seam` | [`skill`](../packages/skill/skill) | [`sandbox-windows-acl`](../packages/sandbox/sandbox-windows-acl), [`skill-badge`](../packages/experimental/skill-badge), [`skill-filesystem`](../packages/skill/skill-filesystem), [`skill-office`](../packages/skill/skill-office) | [`tool-skill`](../packages/skill/tool-skill) | - | Merges provider skill catalogs; tool-skill renders the session-prefix catalog and loads complete skill bodies. |
 | `ctx.agents` | `core` | [`agent`](../packages/core/agent) | - | [`agent-loop`](../packages/core/agent-loop), [`acp`](../packages/acp/acp), [`subagent`](../packages/subagent/subagent) | - | Owns live Agent handles, the create/resume factory seam, and process-local initiator propagation. |
+| `ctx.enterpriseModelController` | `core` | [`api-enterprise-model-controller`](../packages/api/enterprise-model-controller) | - | [`client-ui-enterprise-model-selection`](../packages/client/ui-enterprise-model-selection) | - | Projects the upstream Session model catalog with the default sampled after authenticated model discovery. |
+| `ctx.enterpriseModelDefaults` | `core` | [`agent-enterprise-default-model`](../packages/core/agent-enterprise-default-model) | - | [`llm-enterprise-gateway`](../packages/llm/llm-enterprise-gateway) | - | Keeps authorized model fallback in memory without persisting per-user availability into deployment configuration. |
 | `ctx.agentDefaultModel` | `core` | [`agent-default-model`](../packages/core/agent-default-model) | - | [`api-session-controller`](../packages/api/session-controller), [`headless`](../packages/bundle/headless) | - | Reads the default ModelSelection from volatile Config and saves selections through the profile editor. |
 | `ctx.agentLoop` | `bundle` | [`agent-loop`](../packages/core/agent-loop) | - | [`base`](../packages/bundle/base), [`sdk-minimal`](../packages/bundle/sdk-minimal) | - | The one concrete loop plugin; extension packages depend on dsh-agent events and services, not on this package. |
 | `ctx.schedule` | `core` | [`schedule`](../packages/schedule/schedule) | - | - | - | Stores tasks independently of Session activation and queues due messages in the original Session. |

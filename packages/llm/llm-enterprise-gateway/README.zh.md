@@ -9,7 +9,7 @@ kind: "package-reference"
 
 ## 概述
 
-让企业 profile 只通过 Harness Admin 调用已配置的模型。该包把选中的 Admin 模型编码发送到其 OpenAI 兼容 Chat Completions 端点，只在 Host 获取当前 OIDC access token，并在重新登录前尝试刷新一次被拒绝的令牌。在 Harness Admin 提供带鉴权的 `GET /v1/models` 端点之前，模型目录继续由部署配置提供。
+让企业 profile 只通过 Harness Admin 调用模型。Host 通过带鉴权的 `GET /v1/models` 列出可用模型，并把选中的 Admin 模型编码发送到 Chat Completions 网关。Access token 只保存在 Host；令牌遭拒后，该包会在要求重新登录前尝试刷新一次。
 
 ## 目录
 
@@ -25,7 +25,7 @@ kind: "package-reference"
 <a id="use-this-package"></a>
 ## 使用此包
 
-请在 `llm`、`enterprise-account-oidc` 及其依赖服务之后挂载该包。企业 bundle 会提供这一组合，并禁用随产品交付的直连模型适配器。
+请在 `llm`、`agent-default-model`、`enterprise-account-oidc` 及其依赖服务之后挂载该包。企业 bundle 会提供这一组合，并禁用随产品交付的直连模型适配器。
 
 ```yaml
 - id: llm-enterprise-gateway
@@ -37,7 +37,7 @@ kind: "package-reference"
         name: Enterprise Model
 ```
 
-`gatewayBaseURL` 必须以 `/v1` 结尾。只有 `allowLoopbackHttp` 为 true 时，才允许 `localhost`、`127.0.0.1` 或 `::1` 使用 HTTP。`models` 必须是非空列表，其中的 `id` 是 Harness Admin 模型编码，而不是上游提供商的模型名称。生成的[配置目录](../../../docs/config-catalog.zh.md#deepseek-aidsh-llm-enterprise-gateway)是所有可接受字段的完整来源。
+`gatewayBaseURL` 必须以 `/v1` 结尾。只有 `allowLoopbackHttp` 为 true 时，才允许 `localhost`、`127.0.0.1` 或 `::1` 使用 HTTP。`models` 是非空的 Admin 模型编码列表，用作元数据提示和初始默认候选；它不授予调用权限，也不限制 Admin 返回的模型。生成的[配置目录](../../../docs/config-catalog.zh.md#deepseek-aidsh-llm-enterprise-gateway)是所有可接受字段的完整来源。
 
 -----
 
@@ -47,7 +47,7 @@ kind: "package-reference"
 <details>
 <summary>实现细节——点击展开</summary>
 
-适配器复用现有 pi-ai OpenAI Completions 转换器来处理流式输出、工具、多模态消息内容与 usage 分片。每个请求都会解析带有 `model.invoke` 的 access token；HTTP 401 会执行一次串行化的 refresh token 轮换，并且只会在尚未向调用方发送任何响应内容时重试。第二次 401 会停用匹配的登录。HTTP 403、404、409 与 429 会转换为稳定的 Harness 错误码，且不会清除登录。
+适配器复用现有 pi-ai OpenAI Completions 转换器来处理流式输出、工具、多模态消息内容与 usage 分片。模型列表与调用都使用仅限 Host 的、带有 `model.invoke` 的 access token；列表只包含 Admin 授权的模型，并优先使用 Admin 返回的名称与视觉能力。目录请求失败时不会显示静态配置作为后备列表，直接调用也要求先成功读取目录。HTTP 401 会执行一次串行化的 refresh token 轮换；Chat Completions 只会在尚未向调用方发送任何响应内容时重试。第二次 401 会停用匹配的登录。HTTP 403、404、409 与 429 会转换为稳定的 Harness 错误码，且不会清除登录。对于 HTTP 403，可查看 Harness Admin 网关调用记录，区分网关拒绝与上游供应商转发的拒绝。
 
 | 源文件 | 用途 |
 |---|---|
@@ -78,7 +78,7 @@ kind: "package-reference"
 
 <a id="known-limitations-and-deferred-work"></a>
 
-- Harness Admin 尚未提供带鉴权的 `GET /v1/models`，因此必须手动配置每个可选模型编码及其客户端能力元数据。
+- Admin 模型目录不提供上下文窗口和输出上限。配置的模型条目可补充这些元数据提示；未配置的模型仍可选择，但不会声明上下文窗口。
 - 该路由使用 `/v1/chat/completions`，不支持 `/v1/responses`。工具调用、多模态内容与流式工具调用最终取决于所选上游模型和提供商。
 - 请求流式 usage 时会发送 `stream_options.include_usage=true`，但只有上游 SSE 流实际返回 usage 时才会产生 usage 记录。
 

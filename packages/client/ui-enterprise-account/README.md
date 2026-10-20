@@ -24,6 +24,8 @@ Mount this client plugin with the enterprise account controller. A non-dismissib
 
 All product copy is owned by the typed English and Chinese dictionaries. Tokens, authorization codes, PKCE material, and raw ID-token claims are absent from the Remote API and browser state.
 
+The plugin mounts the generated enterprise account methods through the shared Remote transport before activating its UI registrations. It does not require changes to the official Remote assembly; unloading it withdraws those methods and registrations.
+
 <a id="model-experience"></a>
 ## Model Experience
 

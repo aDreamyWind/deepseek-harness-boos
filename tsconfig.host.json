@@ -280,6 +280,8 @@
 
     { "path": "./packages/api/account-controller" },
     { "path": "./packages/api/enterprise-account-controller" },
+    { "path": "./packages/api/enterprise-model-controller" },
+    { "path": "./packages/core/agent-enterprise-default-model" },
     { "path": "./packages/credentials/deepseek-account-platform" },
     { "path": "./packages/credentials/deepseek-account" },
     { "path": "./packages/credentials/enterprise-account-oidc" },

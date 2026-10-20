@@ -24,6 +24,10 @@ kind: "package-reference"
 
 控制器有意不提供令牌解析方法。网关适配器直接消费仅限 Host 的服务定义。
 
+企业账号界面通过共享 Remote 传输挂载本包生成的 `enterpriseAccount` 方法；官方 Remote 汇总无需注册企业功能。
+
+桌面端配置 `desktop: { usageUrl, topUpUrl, allowLoopbackHttp? }` 后，还会使用企业登录状态提供现有原生 `account` RPC 方法。网页端省略 `desktop`。目标地址必须使用 HTTPS，且不含凭据、查询串或片段；本地开发可显式允许回环 HTTP。原生账号实现继承官方方法声明，不重复注册 Remote 端点。
+
 <a id="model-experience"></a>
 ## 模型体验
 

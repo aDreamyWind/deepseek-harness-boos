@@ -1108,6 +1108,42 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
     ],
   },
   {
+    key: 'enterpriseModelController',
+    summary: 'Own the enterprise model directory independently of ordinary Session operations.',
+    description: 'Own the enterprise model directory independently of ordinary Session operations.',
+    methods: [
+      {
+        signature: '@Remote async modelCatalog(): Promise<ModelCatalog>',
+        description: 'Describe the authorized catalog and sample its default after provider discovery completes.',
+        parameters: [],
+        returns: 'provider groups and failures with the availability-adjusted deployment default.',
+      },
+    ],
+  },
+  {
+    key: 'enterpriseModelDefaults',
+    summary: 'Replace the upstream default-model provider without changing its configuration or persistence.',
+    description: 'Replace the upstream default-model provider without changing its configuration or persistence.',
+    methods: [
+      {
+        signature: 'override currentSelection(): ModelSelection',
+        description: 'Read the deployment default, using the first authorized model when its candidate is unavailable.',
+        parameters: [],
+        returns: 'a detached selection; a fallback never inherits the candidate\'s reasoning effort.',
+      },
+      {
+        signature: 'setAvailableModels(provider: string, models: readonly string[]): void',
+        description: 'Publish authenticated model ids without writing a user-specific fallback into deployment config.',
+        parameters: [{ name: 'provider', description: 'provider route owning this catalog.' }, { name: 'models', description: 'authorized ids in fallback order; an empty list retains the configured candidate.' }],
+      },
+      {
+        signature: 'clearAvailableModels(provider: string): void',
+        description: 'Remove an unloading provider\'s availability publication.',
+        parameters: [{ name: 'provider', description: 'provider route whose publication is removed.' }],
+      },
+    ],
+  },
+  {
     key: 'fileReferences',
     summary: 'Host capability for cancellable file-reference discovery.',
     description: 'Host capability for cancellable file-reference discovery.',

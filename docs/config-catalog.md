@@ -54,6 +54,27 @@ export interface Config {
 ```
 <!-- END GENERATED config-catalog:@deepseek-ai/dsh-agent-default-model -->
 
+<!-- BEGIN GENERATED config-catalog:@deepseek-ai/dsh-agent-enterprise-default-model -->
+<a id="deepseek-aidsh-agent-enterprise-default-model"></a>
+
+## `@deepseek-ai/dsh-agent-enterprise-default-model`
+
+- `refs`: `Volatile` (`@deepseek-ai/cordis`)
+- `source`: [`packages/core/agent-enterprise-default-model/src/index.ts:14`](../packages/core/agent-enterprise-default-model/src/index.ts)
+
+```ts config-catalog
+/** Deployment default fields validated by the upstream default-model schema. */
+export interface Config {
+  /** Registered enterprise provider route. */
+  provider: Volatile<string>
+  /** Initial model candidate, replaced in memory when the catalog excludes it. */
+  model: Volatile<string>
+  /** Optional effort for the configured candidate, never inherited by a fallback. */
+  reasoningEffort: Volatile<string | undefined>
+}
+```
+<!-- END GENERATED config-catalog:@deepseek-ai/dsh-agent-enterprise-default-model -->
+
 <!-- BEGIN GENERATED config-catalog:@deepseek-ai/dsh-agent-instructions -->
 <a id="deepseek-aidsh-agent-instructions"></a>
 
@@ -175,6 +196,33 @@ export interface Config {
 }
 ```
 <!-- END GENERATED config-catalog:@deepseek-ai/dsh-agent-tool-presentation -->
+
+<!-- BEGIN GENERATED config-catalog:@deepseek-ai/dsh-api-enterprise-account-controller -->
+<a id="deepseek-aidsh-api-enterprise-account-controller"></a>
+
+## `@deepseek-ai/dsh-api-enterprise-account-controller`
+
+- `inject`: `enterpriseAccount`
+- `source`: [`packages/api/enterprise-account-controller/src/index.ts:12`](../packages/api/enterprise-account-controller/src/index.ts)
+
+```ts config-catalog
+/** Optional compatibility projection for an unmodified Electron shell. */
+export interface Config {
+  /** Mount native account RPC using these enterprise destinations; absent leaves native RPC unmounted. */
+  readonly desktop?: DesktopAccountConfig | undefined
+}
+
+/** Public destinations required by the native account-state decoder. */
+export interface DesktopAccountConfig {
+  /** Enterprise account or usage page; never an official DeepSeek destination by default. */
+  readonly usageUrl: string
+  /** Enterprise account-management page; no recharge capability is implied. */
+  readonly topUpUrl: string
+  /** Permit development HTTP destinations only on loopback hosts; absent means HTTPS only. */
+  readonly allowLoopbackHttp?: boolean
+}
+```
+<!-- END GENERATED config-catalog:@deepseek-ai/dsh-api-enterprise-account-controller -->
 
 <!-- BEGIN GENERATED config-catalog:@deepseek-ai/dsh-api-gateway -->
 <a id="deepseek-aidsh-api-gateway"></a>
@@ -1819,12 +1867,12 @@ export interface Config extends ProtocolConfig {
 
 ## `@deepseek-ai/dsh-llm-enterprise-gateway`
 
-- `inject`: `llm` · `enterpriseAccount`
+- `inject`: `llm` · `enterpriseAccount` · `enterpriseModelDefaults`
 - `refs`: [`PiAiModelProfile`](../packages/llm/llm-pi-ai/src/index.ts)
-- `source`: [`packages/llm/llm-enterprise-gateway/src/index.ts:39`](../packages/llm/llm-enterprise-gateway/src/index.ts)
+- `source`: [`packages/llm/llm-enterprise-gateway/src/index.ts:38`](../packages/llm/llm-enterprise-gateway/src/index.ts)
 
 ```ts config-catalog
-/** Manually configured Harness Admin model catalog and gateway address. */
+/** Harness Admin gateway address and optional metadata for Admin model codes. */
 export interface Config {
   /** OpenAI-compatible root ending in `/v1`. */
   gatewayBaseURL: string
@@ -1832,8 +1880,12 @@ export interface Config {
   provider?: string
   /** Provider label shown in model selectors. */
   displayName?: string
-  /** Harness Admin model codes and their client-side capability metadata. */
+  /** Model metadata hints; only authenticated `GET /v1/models` decides availability. */
   models: PiAiModelProfile[]
+  /** Deadline for one model-directory read, including a possible 401 retry. */
+  catalogTimeoutMs?: number
+  /** Maximum complete model-directory response size in bytes. */
+  catalogMaxBytes?: number
   /** Permit an HTTP gateway only on a loopback hostname. */
   allowLoopbackHttp?: boolean
 }
@@ -4634,7 +4686,7 @@ These load from a `cordis.yml` entry with no `config:` block; they declare no co
 | `@deepseek-ai/dsh-acp-app` | `cmdlineArgs` | [`packages/bundle/acp-app/src/index.ts`](../packages/bundle/acp-app/src/index.ts) |
 | `@deepseek-ai/dsh-agent` | — | [`packages/core/agent/src/index.ts`](../packages/core/agent/src/index.ts) |
 | `@deepseek-ai/dsh-api-account-controller` | `deepseekAccount` · `agents` | [`packages/api/account-controller/src/index.ts`](../packages/api/account-controller/src/index.ts) |
-| `@deepseek-ai/dsh-api-enterprise-account-controller` | `enterpriseAccount` | [`packages/api/enterprise-account-controller/src/index.ts`](../packages/api/enterprise-account-controller/src/index.ts) |
+| `@deepseek-ai/dsh-api-enterprise-model-controller` | `sessionController` · `agentDefaultModel` | [`packages/api/enterprise-model-controller/src/index.ts`](../packages/api/enterprise-model-controller/src/index.ts) |
 | `@deepseek-ai/dsh-api-remote-access` | — | [`packages/api/remote-access/src/index.ts`](../packages/api/remote-access/src/index.ts) |
 | `@deepseek-ai/dsh-api-remotes` | `typertGateway` | [`packages/api/remotes/src/index.ts`](../packages/api/remotes/src/index.ts) |
 | `@deepseek-ai/dsh-authorization` | `credentials` | [`packages/credentials/authorization/src/index.ts`](../packages/credentials/authorization/src/index.ts) |
@@ -4655,6 +4707,7 @@ These load from a `cordis.yml` entry with no `config:` block; they declare no co
 | `@deepseek-ai/dsh-client-ui-directory-picker-browse` | — | [`packages/client/ui-directory-picker-browse/src/index.ts`](../packages/client/ui-directory-picker-browse/src/index.ts) |
 | `@deepseek-ai/dsh-client-ui-directory-picker-native` | — | [`packages/client/ui-directory-picker-native/src/index.ts`](../packages/client/ui-directory-picker-native/src/index.ts) |
 | `@deepseek-ai/dsh-client-ui-enterprise-account` | — | [`packages/client/ui-enterprise-account/src/index.ts`](../packages/client/ui-enterprise-account/src/index.ts) |
+| `@deepseek-ai/dsh-client-ui-enterprise-model-selection` | — | [`packages/client/ui-enterprise-model-selection/src/index.ts`](../packages/client/ui-enterprise-model-selection/src/index.ts) |
 | `@deepseek-ai/dsh-client-ui-goal` | — | [`packages/client/ui-goal/src/index.ts`](../packages/client/ui-goal/src/index.ts) |
 | `@deepseek-ai/dsh-client-ui-input-trigger` | — | [`packages/client/ui-input-trigger/src/index.ts`](../packages/client/ui-input-trigger/src/index.ts) |
 | `@deepseek-ai/dsh-client-ui-jobs` | — | [`packages/client/ui-jobs/src/index.ts`](../packages/client/ui-jobs/src/index.ts) |

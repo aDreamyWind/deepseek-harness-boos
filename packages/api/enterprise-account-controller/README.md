@@ -24,6 +24,10 @@ The `enterpriseAccount` namespace exposes `getState`, `startSignIn`, `cancelSign
 
 The controller deliberately has no token-resolution method. Gateway adapters consume the Host-only Service Definition directly.
 
+The enterprise account UI mounts this package's generated `enterpriseAccount` methods through the shared Remote transport; the official Remote assembly requires no enterprise registration.
+
+For Desktop, `desktop: { usageUrl, topUpUrl, allowLoopbackHttp? }` also provides the existing native `account` RPC methods using enterprise login state. Omit `desktop` on Web. The destinations must use HTTPS without credentials, query strings, or fragments; explicit loopback HTTP permission is available for local development. The native account implementation inherits the official method declarations without registering duplicate Remote endpoints.
+
 <a id="model-experience"></a>
 ## Model Experience
 

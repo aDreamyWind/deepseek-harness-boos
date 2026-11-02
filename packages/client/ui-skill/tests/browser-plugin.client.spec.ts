@@ -375,6 +375,33 @@ describe('catalog cache', () => {
     await source.candidates(proj('s2'), req(''))
     expect(payloads).toHaveLength(4)
   })
+
+  it('refetches every session after the Host skill catalog changes', async () => {
+    let catalog: SkillRow[] = []
+    const list = vi.fn(() => listOk(catalog)({}))
+    const { source, remote } = await bench(list)
+    await expect(source.candidates(proj('s1'), req('stock'))).resolves.toEqual([])
+    await expect(source.candidates(proj('s2'), req('stock'))).resolves.toEqual([])
+    catalog = [{ name: 'stock-technical-indicator', description: '股票技术分析', modelInvocable: true }]
+    remote.emit('skills/change', [])
+    await expect(source.candidates(proj('s1'), req('stock'))).resolves.toEqual([
+      { name: 'stock-technical-indicator', description: '股票技术分析' },
+    ])
+    await expect(source.candidates(proj('s2'), req('stock'))).resolves.toHaveLength(1)
+    expect(list).toHaveBeenCalledTimes(4)
+  })
+
+  it('removes names from the lexicon on sign-out and ignores the old catalog', async () => {
+    let catalog = CATALOG
+    const { source, remote } = await bench(() => listOk(catalog)({}))
+    await source.candidates(proj('s1'), req(''))
+    expect(source.lexicon!(proj('s1'))).toContain('deploy')
+    catalog = []
+    remote.emit('skills/change', [])
+    expect(source.lexicon!(proj('s1'))).toBeUndefined()
+    await expect(source.candidates(proj('s1'), req(''))).resolves.toEqual([])
+    expect(source.lexicon!(proj('s1'))).toEqual([])
+  })
 })
 
 describe('lexicon', () => {

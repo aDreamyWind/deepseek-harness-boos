@@ -39,6 +39,9 @@
       "path": "../../schedule/schedule"
     },
     {
+      "path": "../../skill/skill"
+    },
+    {
       "path": "../../preset/agent-preset-registry"
     },
     {

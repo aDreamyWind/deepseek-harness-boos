@@ -19,7 +19,8 @@
  * snapshot locally, so one session costs one RPC. The scope-birth warm hook
  * prewarms the session's key; a preset switch drops that one key (the
  * catalog is the preset's, and a blank session may switch after the warm);
- * plugin-manager/changed clears everything — a manager operation may add or
+ * skills/change and plugin-manager/changed clear everything — account,
+ * provider, and manager changes may add or
  * remove providers any session's catalog reads; connection/reset clears
  * everything — the host catalog may differ across generations. A shared
  * in-flight fetch deliberately outlives any single menu interaction: closing
@@ -137,6 +138,7 @@ export function apply(ctx: ClientContext): void {
     promise.then(
       // Settled snapshot backs the synchronous lexicon reads.
       (skills) => {
+        if (fetches.get(sessionId) !== entry) return
         entry.settled = skills
         notifyLexicon(sessionId)
       },
@@ -249,6 +251,7 @@ export function apply(ctx: ClientContext): void {
   // A preset decides which skill providers an agent reads, so a switched
   // session's cached catalog belongs to the composition it no longer runs.
   ctx.remote.$on('agent-preset/selected', invalidate)
+  ctx.remote.$on('skills/change', clearAll)
   // The Host announces every manager operation after its reload without
   // naming what changed, and a switched plugin may register providers in the
   // global layer every session reads, so each one drops every cached catalog.

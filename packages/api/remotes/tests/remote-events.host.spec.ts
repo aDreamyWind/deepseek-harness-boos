@@ -174,6 +174,8 @@ describe('Remote event Host source', () => {
     // An event that declares no resources carries no readers, so access control sees the global resource.
     emitRaw(ctx, 'commands/change', [])
     await expect(stream.next()).resolves.toEqual({ done: false, value: { event: 'commands/change', args: [] } })
+    emitRaw(ctx, 'skills/change', [])
+    await expect(stream.next()).resolves.toEqual({ done: false, value: { event: 'skills/change', args: [] } })
     abort.abort(new Error('Client disconnected'))
     await fiber.dispose()
     await ctx.fiber.dispose()

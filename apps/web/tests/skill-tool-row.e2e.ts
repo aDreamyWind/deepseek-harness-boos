@@ -2,6 +2,7 @@
 // persistence seam, renders through ui-skill's keyed toolview without a model
 // call. The disclosure proves replay-stable naming and exact durable output.
 import { readFile } from 'node:fs/promises'
+import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import type { Browser, Page } from 'playwright'
 import { chromium } from 'playwright'
@@ -10,7 +11,7 @@ import {
   assertFixtureInventory, captureStableAria, compareOrRefreshGolden, fixtureUserPrompts,
   launchWebScaffold, seedSession, selectedSessionFixture, watchConsole, webSnapshotMode, type WebScaffold,
 } from './scaffold.ts'
-import { expandOwningTurnProcess, newEnglishPage, saveFailureShot } from './support.ts'
+import { expandOwningTurnProcess, newEnglishPage, saveFailureShot, writeComposerDraft } from './support.ts'
 
 // Any generation path names the role; the owner's highest committed generation replays.
 const FIXTURE = fileURLToPath(new URL('../../../snapshots/session/skill-load/session.v4.jsonl', import.meta.url))
@@ -119,7 +120,42 @@ describe.skipIf(MODE === 'record')('web e2e: dedicated Skill tool row', () => {
     }
   })
 
+  it('refreshes a retained Session catalog when a runtime skill is added or withdrawn', async () => {
+    const input = page.locator('[data-composer-input]').last()
+    const menu = page.getByRole('listbox', { name: 'Trigger suggestions' })
+    const removeKept = scaffold.ctx.skills.register({
+      name: 'catalog-refresh-kept', description: 'Available throughout the catalog change',
+      source: 'runtime', content: 'Retained skill instructions.',
+    })
+    let removeAdded: (() => void) | undefined
+    try {
+      await writeComposerDraft(page, input, '/catalog-refresh')
+      await menu.getByRole('option', { name: /^catalog-refresh-kept / }).waitFor()
+      removeAdded = scaffold.ctx.skills.register({
+        name: 'catalog-refresh-added', description: 'Available after the Host catalog changes',
+        source: 'runtime', content: 'Added skill instructions.',
+      })
+      await writeComposerDraft(page, input, '/catalog-refresh')
+      await menu.getByRole('option', { name: /^catalog-refresh-added / }).waitFor()
+      await compareOrRefreshGolden(join(SNAPSHOT_DIR, 'catalog-added.expected.md'),
+        await captureStableAria(page, '[role="listbox"]', scaffold.workspaceCwd), MODE)
+      removeAdded()
+      removeAdded = undefined
+      await writeComposerDraft(page, input, '/catalog-refresh')
+      await expect.poll(() => menu.getByRole('option', { name: /^catalog-refresh-added / }).count()).toBe(0)
+      await menu.getByRole('option', { name: /^catalog-refresh-kept / }).waitFor()
+      await compareOrRefreshGolden(join(SNAPSHOT_DIR, 'catalog-withdrawn.expected.md'),
+        await captureStableAria(page, '[role="listbox"]', scaffold.workspaceCwd), MODE)
+      expect(tripwire.pageErrors).toEqual([])
+      expect(tripwire.warnings).toEqual([])
+    } finally {
+      removeAdded?.()
+      removeKept()
+      await input.fill('')
+    }
+  })
+
   it('keeps its snapshot inventory closed', async () => {
-    await assertFixtureInventory(SNAPSHOT_DIR, ['ui.expected.md'])
+    await assertFixtureInventory(SNAPSHOT_DIR, ['ui.expected.md', 'catalog-added.expected.md', 'catalog-withdrawn.expected.md'])
   })
 })

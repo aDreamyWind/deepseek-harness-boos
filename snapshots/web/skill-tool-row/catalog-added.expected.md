@@ -1,0 +1,4 @@
+- listbox "Trigger suggestions":
+  - text: Skills
+  - option "catalog-refresh-added Available after the Host catalog changes" [selected]
+  - option "catalog-refresh-kept Available throughout the catalog change"

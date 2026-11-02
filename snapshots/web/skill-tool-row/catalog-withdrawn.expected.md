@@ -1,0 +1,3 @@
+- listbox "Trigger suggestions":
+  - text: Skills
+  - option "catalog-refresh-kept Available throughout the catalog change" [selected]
